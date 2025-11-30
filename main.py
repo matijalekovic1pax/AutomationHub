@@ -1,15 +1,25 @@
 """
 Revit Automation Hub Backend
 A complete FastAPI backend for managing Revit automation requests with AI analysis.
-Updated to match frontend requirements including user management and file uploads.
+Updated to match frontend requirements including user management, file uploads, and email notifications.
 """
 
 import os
 import time
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from typing import Optional, List
 from contextlib import asynccontextmanager
+
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, use system environment variables
 
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -29,6 +39,14 @@ SECRET_KEY = os.getenv("SECRET_KEY", "revit-hub-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 GEMINI_API_KEY = os.getenv("API_KEY")
+
+# Email Configuration (Optional - for SMTP)
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "noreply@revithub.com")
+DEFAULT_ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@revithub.com")
 
 # Configure Gemini
 if GEMINI_API_KEY:
@@ -202,6 +220,12 @@ class LoginResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class EmailNotification(BaseModel):
+    subject: str
+    body: str
+    to: Optional[str] = None
 
 
 # ============================================================================
@@ -683,6 +707,64 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": int(time.time())}
+
+
+# ============================================================================
+# ROUTES - NOTIFICATIONS
+# ============================================================================
+
+@app.post("/notifications/email")
+async def send_email_notification(
+    notification: EmailNotification,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Send email notification. 
+    In production, this would use SMTP. For development, it logs to console.
+    """
+    recipient = notification.to or DEFAULT_ADMIN_EMAIL
+    
+    # Check if SMTP is configured
+    if SMTP_USER and SMTP_PASSWORD:
+        try:
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = SMTP_FROM
+            msg['To'] = recipient
+            msg['Subject'] = notification.subject
+            
+            # Add body
+            msg.attach(MIMEText(notification.body, 'html'))
+            
+            # Send email
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASSWORD)
+                server.send_message(msg)
+            
+            print(f"✉️  Email sent to {recipient}: {notification.subject}")
+            return {"status": "sent", "to": recipient, "method": "smtp"}
+            
+        except Exception as e:
+            print(f"❌ Failed to send email via SMTP: {e}")
+            # Fall back to console logging
+    
+    # Development mode - log to console
+    print("\n" + "="*80)
+    print("📧 EMAIL NOTIFICATION (Development Mode)")
+    print("="*80)
+    print(f"To: {recipient}")
+    print(f"Subject: {notification.subject}")
+    print("-"*80)
+    print(notification.body)
+    print("="*80 + "\n")
+    
+    return {
+        "status": "logged",
+        "to": recipient,
+        "method": "console",
+        "message": "Email logged to console (SMTP not configured)"
+    }
 
 
 # ============================================================================
