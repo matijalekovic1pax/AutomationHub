@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, User, Calendar, AlertCircle, Bot, Code, Send, Check, Building, Layers, Clock, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowLeft, User, Calendar, AlertCircle, Bot, Code, Send, Check, Building, Layers, Clock, Loader2, Upload } from 'lucide-react';
 import { AutomationRequest, RequestStatus, AIAnalysis } from '../types';
 import { saveRequest } from '../services/storageService';
 import { analyzeRequestWithGemini } from '../services/geminiService';
@@ -15,10 +15,11 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
   const [analyzing, setAnalyzing] = useState(false);
   const [localReq, setLocalReq] = useState(request);
   const [pythonCode, setPythonCode] = useState(request.resultScript || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleStatusChange = (status: RequestStatus) => {
+  const handleStatusChange = async (status: RequestStatus) => {
     const updated = { ...localReq, status, updatedAt: Date.now() };
-    saveRequest(updated);
+    await saveRequest(updated);
     setLocalReq(updated);
     onUpdate();
   };
@@ -28,7 +29,7 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
     try {
       const analysis = await analyzeRequestWithGemini(localReq);
       const updated = { ...localReq, aiAnalysis: analysis };
-      saveRequest(updated);
+      await saveRequest(updated);
       setLocalReq(updated);
       onUpdate();
     } catch (e) {
@@ -39,12 +40,24 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
     }
   };
 
-  const handleSaveCode = () => {
+  const handleSaveCode = async () => {
     const updated = { ...localReq, resultScript: pythonCode, status: RequestStatus.COMPLETED, updatedAt: Date.now() };
-    saveRequest(updated);
+    await saveRequest(updated);
     setLocalReq(updated);
     onUpdate();
     alert("Solution saved and request marked as Completed.");
+  };
+
+  const handleScriptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setPythonCode(content);
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -150,14 +163,33 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
 
           {/* Solution Section */}
           <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
-                <div className="bg-indigo-100 p-2 rounded-lg">
-                    <Code className="w-6 h-6 text-indigo-600" />
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-100 p-2 rounded-lg">
+                      <Code className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <div>
+                      <h3 className="text-xl font-bold text-slate-900">Automation Script</h3>
+                      <p className="text-sm text-slate-500">Python code for Revit API</p>
+                  </div>
                 </div>
-                <div>
-                    <h3 className="text-xl font-bold text-slate-900">Automation Script</h3>
-                    <p className="text-sm text-slate-500">Python code for Revit API</p>
-                </div>
+                {isDeveloper && (
+                  <div>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      onChange={handleScriptUpload}
+                      accept=".py,.txt"
+                      className="hidden" 
+                    />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition"
+                    >
+                      <Upload className="w-4 h-4" /> Upload .py File
+                    </button>
+                  </div>
+                )}
             </div>
             
             {isDeveloper ? (

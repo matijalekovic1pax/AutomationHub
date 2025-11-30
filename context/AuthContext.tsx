@@ -16,10 +16,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check session on mount
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
+    const checkSession = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (e) {
+        console.error("Session check failed", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
   }, []);
 
   const login = async (email: string) => {
@@ -27,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const user = await apiLogin(email);
       setUser(user);
-      sessionStorage.setItem('rah_current_user', JSON.stringify(user));
+      sessionStorage.setItem('rah_current_user_id', user.id);
     } finally {
       setIsLoading(false);
     }

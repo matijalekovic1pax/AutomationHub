@@ -1,39 +1,44 @@
-import { User, UserRole } from '../types';
-
-const MOCK_USERS: User[] = [
-  {
-    id: 'user_arch',
-    name: 'Alice Architect',
-    email: 'arch@design.com',
-    role: UserRole.ARCHITECT,
-    avatar: 'https://ui-avatars.com/api/?name=Alice+Architect&background=6366f1&color=fff'
-  },
-  {
-    id: 'user_dev',
-    name: 'Dave Developer',
-    email: 'dev@code.com',
-    role: UserRole.DEVELOPER,
-    avatar: 'https://ui-avatars.com/api/?name=Dave+Developer&background=10b981&color=fff'
-  }
-];
+import { User } from '../types';
+import { apiClient } from './apiClient';
 
 export const login = async (email: string): Promise<User> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (!user) {
-    throw new Error('Invalid credentials. (Hint: Try arch@design.com or dev@code.com)');
+  // We use a simplified flow where password matches the role logic from the mockup
+  // ARCHITECT -> 'revit'
+  // DEVELOPER -> 'python'
+  let password = 'password';
+  if (email === 'arch@design.com') password = 'revit';
+  if (email === 'dev@code.com') password = 'python';
+
+  // OAuth2 Password Flow expects form data
+  const formData = new FormData();
+  formData.append('username', email);
+  formData.append('password', password);
+
+  try {
+      const data = await apiClient.postForm('/token', formData);
+      if (data.access_token) {
+          sessionStorage.setItem('rah_access_token', data.access_token);
+          return data.user;
+      }
+      throw new Error("No token returned");
+  } catch (error) {
+      console.error(error);
+      throw new Error('Login failed. Ensure Backend is running.');
   }
-  
-  return user;
 };
 
-export const getCurrentUser = (): User | null => {
-  const stored = sessionStorage.getItem('rah_current_user');
-  return stored ? JSON.parse(stored) : null;
+export const getCurrentUser = async (): Promise<User | null> => {
+  const token = sessionStorage.getItem('rah_access_token');
+  if (!token) return null;
+  
+  try {
+      return await apiClient.get('/users/me');
+  } catch (e) {
+      sessionStorage.removeItem('rah_access_token');
+      return null;
+  }
 };
 
 export const logout = () => {
-  sessionStorage.removeItem('rah_current_user');
+  sessionStorage.removeItem('rah_access_token');
 };

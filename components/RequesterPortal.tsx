@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, FileText, Loader2, Paperclip, BarChart3, Clock, CheckCircle2, Search } from 'lucide-react';
+import { Plus, FileText, Loader2, Paperclip, BarChart3, Clock, CheckCircle2 } from 'lucide-react';
 import { AutomationRequest, Priority, RequestStatus } from '../types';
-import { fileToBase64, saveRequest } from '../services/storageService';
+import { fileToBase64, createRequest } from '../services/storageService';
 import { useAuth } from '../context/AuthContext';
 
 interface Props {
@@ -68,7 +68,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
         attachments
       };
 
-      saveRequest(request);
+      await createRequest(request);
       onRequestCreate(); 
       setView('DASHBOARD');
       setNewReq({ title: '', desc: '', priority: Priority.MEDIUM, project: '', revitVersion: '2024', dueDate: '', files: [] });

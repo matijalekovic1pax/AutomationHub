@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Layout, Box, User as UserIcon, LogOut, Code2, Settings } from 'lucide-react';
+import { Layout, Box, User as UserIcon, LogOut, Code2, Settings, Loader2 } from 'lucide-react';
 import { RequesterPortal } from './components/RequesterPortal';
 import { DeveloperPortal } from './components/DeveloperPortal';
 import { RequestDetail } from './components/RequestDetail';
@@ -9,18 +10,35 @@ import { getRequests } from './services/storageService';
 import { AutomationRequest, UserRole } from './types';
 
 const AppContent: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const [selectedRequest, setSelectedRequest] = useState<AutomationRequest | null>(null);
   const [requests, setRequests] = useState<AutomationRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
-    setRequests(getRequests());
-  }, [refreshTrigger]);
+    const fetchData = async () => {
+      if (!user) return;
+      setLoadingRequests(true);
+      try {
+        const data = await getRequests();
+        setRequests(data);
+      } catch(e) {
+          console.error("Failed to fetch requests", e);
+      } finally {
+        setLoadingRequests(false);
+      }
+    };
+    fetchData();
+  }, [user, refreshTrigger]);
 
   const refreshRequests = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  if (authLoading) {
+    return <div className="h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-8 h-8 animate-spin text-indigo-600"/></div>;
+  }
 
   if (!user) {
     return <Login />;
@@ -40,11 +58,18 @@ const AppContent: React.FC = () => {
           onBack={() => setSelectedRequest(null)}
           onUpdate={() => {
             refreshRequests();
-            const fresh = getRequests().find(r => r.id === selectedRequest.id);
-            if (fresh) setSelectedRequest(fresh);
+            // Re-fetch the specific request to get latest state
+            getRequests().then(all => {
+                 const fresh = all.find(r => r.id === selectedRequest.id);
+                 if (fresh) setSelectedRequest(fresh);
+            });
           }}
         />
       );
+    }
+
+    if (loadingRequests && requests.length === 0) {
+        return <div className="flex h-64 items-center justify-center text-slate-400 gap-2"><Loader2 className="w-5 h-5 animate-spin"/> Loading requests...</div>;
     }
 
     if (user.role === UserRole.ARCHITECT) {
