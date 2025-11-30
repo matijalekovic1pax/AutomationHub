@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { getCurrentUser, login as apiLogin, logout as apiLogout } from '../services/authService';
@@ -5,7 +6,7 @@ import { getCurrentUser, login as apiLogin, logout as apiLogout } from '../servi
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -29,10 +30,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, []);
 
-  const login = async (email: string) => {
+  const login = async (email: string, password?: string) => {
     setIsLoading(true);
     try {
-      const user = await apiLogin(email);
+      const user = await apiLogin(email, password);
       setUser(user);
       sessionStorage.setItem('rah_current_user_id', user.id);
     } finally {

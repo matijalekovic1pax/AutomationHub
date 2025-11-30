@@ -1,22 +1,22 @@
 
 import { AutomationRequest } from '../types';
-import { db } from '../db';
+import { apiClient } from './apiClient';
 
 export const getRequests = async (): Promise<AutomationRequest[]> => {
-  // Return all requests sorted by creation date (descending)
-  return await db.requests.orderBy('createdAt').reverse().toArray();
+  return await apiClient.get('/requests');
 };
 
 export const createRequest = async (request: AutomationRequest): Promise<void> => {
-  await db.requests.add(request);
+  await apiClient.post('/requests', request);
 };
 
 export const saveRequest = async (request: AutomationRequest): Promise<void> => {
-    await db.requests.put(request);
+    // In a real REST API, this is usually a PUT to /requests/:id
+    await apiClient.put(`/requests/${request.id}`, request);
 };
 
 export const deleteRequest = async (id: string): Promise<void> => {
-  await db.requests.delete(id);
+  await apiClient.delete(`/requests/${id}`);
 };
 
 export const fileToBase64 = (file: File): Promise<string> => {

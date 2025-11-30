@@ -1,29 +1,48 @@
 
-import { User } from '../types';
-import { db } from '../db';
+import { User, UserRole } from '../types';
+import { apiClient } from './apiClient';
 
-export const login = async (email: string): Promise<User> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Find user in local DB
-  const user = await db.users.where('email').equals(email).first();
+export const login = async (email: string, password?: string): Promise<User> => {
+  // Conforms to OAuth2 standard or custom login endpoint defined in backend spec
+  const response = await apiClient.post('/auth/login', { username: email, password });
   
-  if (user) {
-      sessionStorage.setItem('rah_current_user_id', user.id);
-      return user;
+  if (response.access_token) {
+      sessionStorage.setItem('rah_access_token', response.access_token);
+      // We assume the login response also returns the user profile, 
+      // or we fetch it immediately after.
+      return response.user;
   }
-  throw new Error('User not found. Try arch@design.com or dev@code.com');
+  throw new Error('Login failed: No access token received');
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  const userId = sessionStorage.getItem('rah_current_user_id');
-  if (!userId) return null;
+  const token = sessionStorage.getItem('rah_access_token');
+  if (!token) return null;
   
-  const user = await db.users.get(userId);
-  return user || null;
+  try {
+    return await apiClient.get('/users/me');
+  } catch (e) {
+    // Token might be expired
+    logout();
+    return null;
+  }
 };
 
 export const logout = () => {
-  sessionStorage.removeItem('rah_current_user_id');
+  sessionStorage.removeItem('rah_access_token');
+  window.location.reload();
+};
+
+// --- User Management for Developers ---
+
+export const getAllUsers = async (): Promise<User[]> => {
+  return await apiClient.get('/users');
+};
+
+export const createUser = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, role });
+};
+
+export const deleteUser = async (id: string): Promise<void> => {
+  await apiClient.delete(`/users/${id}`);
 };

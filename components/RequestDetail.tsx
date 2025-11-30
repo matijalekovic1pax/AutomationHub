@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { ArrowLeft, User, Calendar, AlertCircle, Bot, Code, Send, Check, Building, Layers, Clock, Loader2, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, User, Calendar, AlertCircle, Bot, Code, Send, Check, Building, Layers, Clock, Loader2, Upload, FileCode, Trash2, Download, Copy, CheckCircle } from 'lucide-react';
 import { AutomationRequest, RequestStatus, AIAnalysis } from '../types';
 import { saveRequest } from '../services/storageService';
 import { analyzeRequestWithGemini } from '../services/geminiService';
@@ -15,7 +15,16 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
   const [analyzing, setAnalyzing] = useState(false);
   const [localReq, setLocalReq] = useState(request);
   const [pythonCode, setPythonCode] = useState(request.resultScript || '');
+  const [fileName, setFileName] = useState<string | undefined>(request.resultFileName);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state if request prop changes
+  useEffect(() => {
+    setLocalReq(request);
+    setPythonCode(request.resultScript || '');
+    setFileName(request.resultFileName);
+  }, [request]);
 
   const handleStatusChange = async (status: RequestStatus) => {
     const updated = { ...localReq, status, updatedAt: Date.now() };
@@ -41,23 +50,61 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
   };
 
   const handleSaveCode = async () => {
-    const updated = { ...localReq, resultScript: pythonCode, status: RequestStatus.COMPLETED, updatedAt: Date.now() };
+    const updated = { 
+        ...localReq, 
+        resultScript: pythonCode, 
+        resultFileName: fileName,
+        status: RequestStatus.COMPLETED, 
+        updatedAt: Date.now() 
+    };
     await saveRequest(updated);
     setLocalReq(updated);
     onUpdate();
-    alert("Solution saved and request marked as Completed.");
+    
+    // Simulate Email Notification
+    setTimeout(() => {
+        alert(`✅ Request marked as Completed.\n\n📧 Automated email notification sent to ${localReq.requesterName} (arch@design.com) with the attached script.`);
+    }, 500);
   };
 
   const handleScriptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Set filename state for UI
+    setFileName(file.name);
+
+    // Read content for backend storage
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setPythonCode(content);
     };
     reader.readAsText(file);
+    
+    // Clear input so same file can be selected again if needed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleRemoveFile = () => {
+      setFileName(undefined);
+      setPythonCode('');
+  };
+
+  const handleDownloadScript = () => {
+      const element = document.createElement("a");
+      const file = new Blob([localReq.resultScript || ''], {type: 'text/plain'});
+      element.href = URL.createObjectURL(file);
+      element.download = localReq.resultFileName || "script.py";
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+  };
+
+  const handleCopyCode = () => {
+      navigator.clipboard.writeText(localReq.resultScript || '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -194,13 +241,36 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
             
             {isDeveloper ? (
                 <div className="space-y-4">
-                    <textarea 
-                        value={pythonCode}
-                        onChange={(e) => setPythonCode(e.target.value)}
-                        className="w-full h-[500px] bg-[#0d1117] text-slate-300 font-mono text-sm p-4 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none leading-relaxed"
-                        placeholder="# Paste your pyRevit/RevitPythonShell code here...&#10;import clr&#10;clr.AddReference('RevitAPI')&#10;from Autodesk.Revit.DB import *"
-                        spellCheck={false}
-                    />
+                    {/* File Card or Editor */}
+                    {fileName ? (
+                         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white p-2 rounded-md border border-slate-200 shadow-sm">
+                                    <FileCode className="w-6 h-6 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-slate-900 text-sm">{fileName}</p>
+                                    <p className="text-xs text-slate-500">Ready to publish</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleRemoveFile}
+                                className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"
+                                title="Remove file"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                         </div>
+                    ) : (
+                        <textarea 
+                            value={pythonCode}
+                            onChange={(e) => setPythonCode(e.target.value)}
+                            className="w-full h-[500px] bg-[#0d1117] text-slate-300 font-mono text-sm p-4 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none leading-relaxed"
+                            placeholder="# Paste your pyRevit/RevitPythonShell code here...&#10;import clr&#10;clr.AddReference('RevitAPI')&#10;from Autodesk.Revit.DB import *"
+                            spellCheck={false}
+                        />
+                    )}
+                    
                     <div className="flex justify-end gap-3">
                          <button 
                             className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition"
@@ -209,32 +279,57 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
                         </button>
                         <button 
                             onClick={handleSaveCode}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition text-sm font-medium shadow-sm"
+                            disabled={!pythonCode}
+                            className={`px-6 py-2 rounded-lg flex items-center gap-2 transition text-sm font-medium shadow-sm ${!pythonCode ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                         >
                             <Send className="w-4 h-4" /> Publish & Complete
                         </button>
                     </div>
                 </div>
             ) : (
+                /* Requester View */
                 localReq.resultScript ? (
-                    <div className="relative group">
-                        <div className="absolute top-0 left-0 right-0 h-8 bg-[#0d1117] rounded-t-lg flex items-center px-4 border-b border-slate-700">
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 rounded-full bg-red-500"/>
-                                <div className="w-3 h-3 rounded-full bg-yellow-500"/>
-                                <div className="w-3 h-3 rounded-full bg-green-500"/>
+                    localReq.resultFileName ? (
+                        /* File View for Requester */
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 flex items-center justify-between group hover:border-indigo-300 transition">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <FileCode className="w-8 h-8 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900">{localReq.resultFileName}</h4>
+                                    <p className="text-sm text-slate-500">Python Script</p>
+                                </div>
                             </div>
+                            <button 
+                                onClick={handleDownloadScript}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm transition"
+                            >
+                                <Download className="w-4 h-4" /> Download
+                            </button>
                         </div>
-                        <pre className="w-full bg-[#0d1117] text-slate-300 font-mono text-sm p-6 pt-12 rounded-lg overflow-x-auto shadow-inner">
-                            <code>{localReq.resultScript}</code>
-                        </pre>
-                        <button 
-                            onClick={() => navigator.clipboard.writeText(localReq.resultScript || '')}
-                            className="absolute top-12 right-4 bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded opacity-0 group-hover:opacity-100 transition shadow-lg"
-                        >
-                            Copy Code
-                        </button>
-                    </div>
+                    ) : (
+                        /* Text/Inline Code View for Requester */
+                        <div className="relative group rounded-lg overflow-hidden border border-slate-800 shadow-md">
+                            <div className="h-10 bg-[#0d1117] flex items-center justify-between px-4 border-b border-slate-700">
+                                <div className="flex gap-1.5">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"/>
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500"/>
+                                    <div className="w-3 h-3 rounded-full bg-green-500"/>
+                                </div>
+                                <button 
+                                    onClick={handleCopyCode}
+                                    className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white transition bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded"
+                                >
+                                    {copied ? <CheckCircle className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                    {copied ? 'Copied!' : 'Copy Code'}
+                                </button>
+                            </div>
+                            <pre className="w-full bg-[#0d1117] text-slate-300 font-mono text-sm p-6 overflow-x-auto">
+                                <code>{localReq.resultScript}</code>
+                            </pre>
+                        </div>
+                    )
                 ) : (
                     <div className="bg-slate-50 border border-slate-200 border-dashed rounded-lg p-16 text-center">
                         <Code className="w-12 h-12 text-slate-300 mx-auto mb-4" />

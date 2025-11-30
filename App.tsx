@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Box, User as UserIcon, LogOut, Code2, Settings, Loader2 } from 'lucide-react';
+import { Layout, Box, User as UserIcon, LogOut, Code2, Settings, Loader2, Users } from 'lucide-react';
 import { RequesterPortal } from './components/RequesterPortal';
 import { DeveloperPortal } from './components/DeveloperPortal';
 import { RequestDetail } from './components/RequestDetail';
+import { ScriptsLibrary } from './components/ScriptsLibrary';
+import { SettingsPage } from './components/SettingsPage';
+import { UserManagement } from './components/UserManagement';
 import { Login } from './components/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { getRequests } from './services/storageService';
-import { seedDatabase } from './db';
 import { AutomationRequest, UserRole } from './types';
+
+type PageView = 'DASHBOARD' | 'LIBRARY' | 'SETTINGS' | 'USERS';
 
 const AppContent: React.FC = () => {
   const { user, logout, isLoading: authLoading } = useAuth();
@@ -16,11 +20,7 @@ const AppContent: React.FC = () => {
   const [requests, setRequests] = useState<AutomationRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Initialize DB
-  useEffect(() => {
-    seedDatabase().catch(console.error);
-  }, []);
+  const [currentView, setCurrentView] = useState<PageView>('DASHBOARD');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,6 +29,8 @@ const AppContent: React.FC = () => {
       try {
         const data = await getRequests();
         setRequests(data);
+      } catch (e) {
+        console.error("Failed to load requests from backend", e);
       } finally {
         setLoadingRequests(false);
       }
@@ -51,9 +53,25 @@ const AppContent: React.FC = () => {
   const handleLogout = () => {
     logout();
     setSelectedRequest(null);
+    setCurrentView('DASHBOARD');
   };
 
   const renderMainContent = () => {
+    if (currentView === 'SETTINGS') {
+      return <SettingsPage />;
+    }
+
+    if (currentView === 'LIBRARY') {
+      return <ScriptsLibrary requests={requests} onViewRequest={(req) => {
+        setSelectedRequest(req);
+        setCurrentView('DASHBOARD'); // Switch back context so detail view renders
+      }} />;
+    }
+
+    if (currentView === 'USERS') {
+        return <UserManagement />;
+    }
+
     if (selectedRequest) {
       return (
         <RequestDetail 
@@ -73,7 +91,7 @@ const AppContent: React.FC = () => {
     }
 
     if (loadingRequests && requests.length === 0) {
-        return <div className="flex h-64 items-center justify-center text-slate-400 gap-2"><Loader2 className="w-5 h-5 animate-spin"/> Loading requests...</div>;
+        return <div className="flex h-64 items-center justify-center text-slate-400 gap-2"><Loader2 className="w-5 h-5 animate-spin"/> Loading requests from backend...</div>;
     }
 
     if (user.role === UserRole.ARCHITECT) {
@@ -102,25 +120,40 @@ const AppContent: React.FC = () => {
              <div className="bg-indigo-600 p-1.5 rounded-lg">
                 <Box className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-white tracking-tight">Revit<span className="text-indigo-400">Hub</span></span>
+            <span className="font-bold text-lg text-white tracking-tight">Revit Automation <span className="text-indigo-400">Hub</span></span>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-1">
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2 mt-4">Menu</div>
             <button 
-                onClick={() => setSelectedRequest(null)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${!selectedRequest ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white'}`}
+                onClick={() => { setSelectedRequest(null); setCurrentView('DASHBOARD'); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${currentView === 'DASHBOARD' && !selectedRequest ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white'}`}
             >
                 <Layout className="w-4 h-4" />
                 <span className="font-medium">Dashboard</span>
             </button>
+            <button 
+                onClick={() => { setSelectedRequest(null); setCurrentView('LIBRARY'); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${currentView === 'LIBRARY' ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white'}`}
+            >
+                <Code2 className="w-4 h-4" />
+                <span className="font-medium">Scripts Library</span>
+            </button>
+            
             {user.role === UserRole.DEVELOPER && (
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                    <Code2 className="w-4 h-4" />
-                    <span className="font-medium">Scripts Library</span>
+                <button 
+                    onClick={() => { setSelectedRequest(null); setCurrentView('USERS'); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${currentView === 'USERS' ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white'}`}
+                >
+                    <Users className="w-4 h-4" />
+                    <span className="font-medium">User Management</span>
                 </button>
             )}
-             <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 hover:text-white transition">
+
+             <button 
+                onClick={() => { setSelectedRequest(null); setCurrentView('SETTINGS'); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition ${currentView === 'SETTINGS' ? 'bg-indigo-600/10 text-indigo-400' : 'hover:bg-slate-800 hover:text-white'}`}
+            >
                 <Settings className="w-4 h-4" />
                 <span className="font-medium">Settings</span>
             </button>

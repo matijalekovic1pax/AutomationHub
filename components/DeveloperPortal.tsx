@@ -1,5 +1,6 @@
+
 import React, { useMemo, useState } from 'react';
-import { Kanban, Clock, LayoutDashboard, List, Search, Building } from 'lucide-react';
+import { Kanban, Clock, LayoutDashboard, List, Search, Building, Filter, ArrowUpDown } from 'lucide-react';
 import { AutomationRequest, RequestStatus, Priority } from '../types';
 
 interface Props {
@@ -10,10 +11,39 @@ interface Props {
 export const DeveloperPortal: React.FC<Props> = ({ requests, onViewRequest }) => {
   const [viewMode, setViewMode] = useState<'BOARD' | 'LIST'>('BOARD');
   const [search, setSearch] = useState('');
+  
+  // Filtering States
+  const [filterPriority, setFilterPriority] = useState<string>('ALL');
+  const [filterProject, setFilterProject] = useState<string>('ALL');
+  const [sortDate, setSortDate] = useState<'DESC' | 'ASC'>('DESC');
+
+  const uniqueProjects = useMemo(() => {
+    return Array.from(new Set(requests.map(r => r.projectName))).sort();
+  }, [requests]);
 
   const filteredRequests = useMemo(() => {
-    return requests.filter(r => r.title.toLowerCase().includes(search.toLowerCase()) || r.requesterName.toLowerCase().includes(search.toLowerCase()));
-  }, [requests, search]);
+    let result = requests.filter(r => 
+      r.title.toLowerCase().includes(search.toLowerCase()) || 
+      r.requesterName.toLowerCase().includes(search.toLowerCase())
+    );
+
+    if (filterPriority !== 'ALL') {
+      result = result.filter(r => r.priority === filterPriority);
+    }
+
+    if (filterProject !== 'ALL') {
+      result = result.filter(r => r.projectName === filterProject);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      return sortDate === 'DESC' 
+        ? b.createdAt - a.createdAt 
+        : a.createdAt - b.createdAt;
+    });
+
+    return result;
+  }, [requests, search, filterPriority, filterProject, sortDate]);
 
   const stats = {
       total: requests.length,
@@ -86,31 +116,86 @@ export const DeveloperPortal: React.FC<Props> = ({ requests, onViewRequest }) =>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-2 rounded-lg border border-slate-200 shadow-sm gap-3">
-        <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-            <input 
-                type="text" 
-                placeholder="Search requests..." 
-                className="pl-9 pr-4 py-2 text-sm border-none focus:ring-0 w-full sm:w-64 text-slate-700 placeholder-slate-400"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-            />
+      {/* Toolbar & Filters */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-2 rounded-lg border border-slate-200 shadow-sm gap-3">
+          <div className="relative w-full sm:w-auto flex-1 max-w-md">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <input 
+                  type="text" 
+                  placeholder="Search requests..." 
+                  className="pl-9 pr-4 py-2 text-sm border-none focus:ring-0 w-full text-slate-700 placeholder-slate-400"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+              />
+          </div>
+          <div className="flex bg-slate-100 p-1 rounded-md w-full sm:w-auto">
+              <button 
+                  onClick={() => setViewMode('BOARD')}
+                  className={`flex-1 sm:flex-none p-2 rounded flex items-center justify-center gap-2 text-sm font-medium transition ${viewMode === 'BOARD' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                  <LayoutDashboard className="w-4 h-4" /> Board
+              </button>
+              <button 
+                  onClick={() => setViewMode('LIST')}
+                  className={`flex-1 sm:flex-none p-2 rounded flex items-center justify-center gap-2 text-sm font-medium transition ${viewMode === 'LIST' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                  <List className="w-4 h-4" /> List
+              </button>
+          </div>
         </div>
-        <div className="flex bg-slate-100 p-1 rounded-md w-full sm:w-auto">
-            <button 
-                onClick={() => setViewMode('BOARD')}
-                className={`flex-1 sm:flex-none p-2 rounded flex items-center justify-center gap-2 text-sm font-medium transition ${viewMode === 'BOARD' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center gap-3 bg-white px-4 py-3 rounded-lg border border-slate-200 shadow-sm text-sm">
+            <div className="flex items-center gap-2 text-slate-500 mr-2">
+                <Filter className="w-4 h-4" />
+                <span className="font-semibold text-xs uppercase">Filters</span>
+            </div>
+            
+            <select 
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-700 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-indigo-500 outline-none"
             >
-                <LayoutDashboard className="w-4 h-4" /> Board
-            </button>
-             <button 
-                onClick={() => setViewMode('LIST')}
-                className={`flex-1 sm:flex-none p-2 rounded flex items-center justify-center gap-2 text-sm font-medium transition ${viewMode === 'LIST' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                <option value="ALL">All Priorities</option>
+                <option value={Priority.CRITICAL}>Critical</option>
+                <option value={Priority.HIGH}>High</option>
+                <option value={Priority.MEDIUM}>Medium</option>
+                <option value={Priority.LOW}>Low</option>
+            </select>
+
+            <select 
+                value={filterProject}
+                onChange={(e) => setFilterProject(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-700 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-indigo-500 outline-none max-w-[150px]"
             >
-                <List className="w-4 h-4" /> List
-            </button>
+                <option value="ALL">All Projects</option>
+                {uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+
+            <div className="w-px h-5 bg-slate-200 mx-2 hidden sm:block"></div>
+
+            <div className="flex items-center gap-2 text-slate-500 ml-auto sm:ml-0">
+                 <ArrowUpDown className="w-4 h-4" />
+                 <span className="font-semibold text-xs uppercase">Sort Date</span>
+            </div>
+             <select 
+                value={sortDate}
+                onChange={(e) => setSortDate(e.target.value as 'DESC' | 'ASC')}
+                className="bg-slate-50 border border-slate-200 text-slate-700 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-indigo-500 outline-none"
+            >
+                <option value="DESC">Newest First</option>
+                <option value="ASC">Oldest First</option>
+            </select>
+
+            {(filterPriority !== 'ALL' || filterProject !== 'ALL') && (
+                <button 
+                    onClick={() => { setFilterPriority('ALL'); setFilterProject('ALL'); }}
+                    className="ml-auto text-xs text-red-500 hover:text-red-700 font-medium"
+                >
+                    Clear Filters
+                </button>
+            )}
         </div>
       </div>
       
@@ -125,14 +210,14 @@ export const DeveloperPortal: React.FC<Props> = ({ requests, onViewRequest }) =>
                              <Clock className="w-4 h-4 text-yellow-700" />
                         </div>
                         <h3 className="font-bold text-slate-800 text-lg">Inbox</h3>
-                        <span className="bg-yellow-50 text-yellow-700 border border-yellow-200 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm">{inboxRequests.length} New</span>
+                        <span className="bg-yellow-50 text-yellow-700 border border-yellow-200 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm">{inboxRequests.length}</span>
                     </div>
                     
                     <div className="bg-slate-100/50 p-6 rounded-xl border border-slate-200 border-dashed">
                         {inboxRequests.length === 0 ? (
                             <div className="text-center py-8 text-slate-400 text-sm">
                                 <Clock className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                No pending requests. Great job!
+                                No pending requests matching filters.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

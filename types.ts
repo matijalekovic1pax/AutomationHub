@@ -1,3 +1,4 @@
+
 export enum RequestStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
@@ -21,6 +22,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string; // Added for auth logic
   role: UserRole;
   avatar?: string;
 }
@@ -59,6 +61,7 @@ export interface AutomationRequest {
   // Developer fields
   developerNotes?: string;
   resultScript?: string;
+  resultFileName?: string; // New field for uploaded file name
   aiAnalysis?: AIAnalysis;
 }
 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Box, Lock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Box, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // Mock password
+  const [password, setPassword] = useState(''); 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -14,7 +15,7 @@ export const Login: React.FC = () => {
     setError('');
     setIsSubmitting(true);
     try {
-      await login(email);
+      await login(email, password);
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -29,7 +30,7 @@ export const Login: React.FC = () => {
             <div className="mx-auto w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4 shadow-lg shadow-indigo-900/50">
                 <Box className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Revit<span className="text-indigo-400">Hub</span></h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Revit Automation <span className="text-indigo-400">Hub</span></h1>
             <p className="text-slate-400 mt-2 text-sm">Automation Request Portal</p>
         </div>
         
@@ -47,7 +48,7 @@ export const Login: React.FC = () => {
                     <input 
                         type="email" 
                         required
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        className="w-full px-4 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                         placeholder="you@company.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -58,14 +59,20 @@ export const Login: React.FC = () => {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
                     <div className="relative">
                         <input 
-                            type="password" 
+                            type={showPassword ? "text" : "password"}
                             required
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                            className="w-full px-4 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none pr-10"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <Lock className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                     </div>
                 </div>
 
