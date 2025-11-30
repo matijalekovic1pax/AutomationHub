@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
-import { Plus, FileText, Loader2, Paperclip, BarChart3, Clock, CheckCircle2 } from 'lucide-react';
+import { Plus, FileText, Loader2, Paperclip, BarChart3, Clock, CheckCircle2, X } from 'lucide-react';
 import { AutomationRequest, Priority, RequestStatus } from '../types';
 import { fileToBase64, createRequest } from '../services/storageService';
+import { sendEmailNotification } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
 
 interface Props {
@@ -9,6 +11,16 @@ interface Props {
   onRequestCreate: () => void;
   onViewRequest: (req: AutomationRequest) => void;
 }
+
+const INITIAL_REQ_STATE = {
+  title: '',
+  desc: '',
+  priority: Priority.MEDIUM,
+  project: '',
+  revitVersion: '2024',
+  dueDate: '',
+  files: [] as File[]
+};
 
 export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, onViewRequest }) => {
   const { user } = useAuth();
@@ -22,24 +34,30 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
   const inProgressCount = myRequests.filter(r => r.status === RequestStatus.IN_PROGRESS).length;
   const completedCount = myRequests.filter(r => r.status === RequestStatus.COMPLETED).length;
 
-  const [newReq, setNewReq] = useState<{
-    title: string;
-    desc: string;
-    priority: Priority;
-    project: string;
-    revitVersion: string;
-    dueDate: string;
-    files: File[];
-  }>({
-    title: '',
-    desc: '',
-    priority: Priority.MEDIUM,
-    project: '',
-    revitVersion: '2024',
-    dueDate: '',
-    files: []
-  });
+  const [newReq, setNewReq] = useState(INITIAL_REQ_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const addedFiles = Array.from(e.target.files);
+      setNewReq(prev => ({
+        ...prev,
+        files: [...prev.files, ...addedFiles] // Append files instead of replacing
+      }));
+    }
+  };
+
+  const handleRemoveFile = (indexToRemove: number) => {
+    setNewReq(prev => ({
+      ...prev,
+      files: prev.files.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  const handleCancel = () => {
+    setNewReq(INITIAL_REQ_STATE); // Reset form data
+    setView('DASHBOARD');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,9 +87,16 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
       };
 
       await createRequest(request);
+      
+      // Notify Developers via Backend
+      await sendEmailNotification({
+        subject: `New Automation Request: ${request.title}`,
+        body: `A new request has been submitted by ${request.requesterName}.\n\nProject: ${request.projectName}\nPriority: ${request.priority}\n\nPlease check the Developer Portal.`
+      });
+
       onRequestCreate(); 
+      setNewReq(INITIAL_REQ_STATE); // Reset form data
       setView('DASHBOARD');
-      setNewReq({ title: '', desc: '', priority: Priority.MEDIUM, project: '', revitVersion: '2024', dueDate: '', files: [] });
     } catch (err) {
       console.error(err);
       alert('Failed to submit request');
@@ -84,7 +109,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
     return (
       <div className="max-w-4xl mx-auto">
          <div className="flex items-center gap-2 mb-6 text-slate-500 text-sm">
-            <button onClick={() => setView('DASHBOARD')} className="hover:text-indigo-600 transition">Dashboard</button>
+            <button onClick={handleCancel} className="hover:text-indigo-600 transition">Dashboard</button>
             <span>/</span>
             <span className="text-slate-900">New Request</span>
          </div>
@@ -171,16 +196,30 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
                                 <Paperclip className="w-8 h-8 text-slate-400 group-hover:text-indigo-500 transition mb-2" />
                                 <p className="text-sm text-slate-500">Click to upload files</p>
                             </div>
-                            <input type="file" className="hidden" multiple onChange={(e) => {
-                            if(e.target.files) setNewReq({...newReq, files: Array.from(e.target.files)})
-                            }} />
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              multiple 
+                              onChange={handleFileChange} 
+                            />
                         </label>
                     </div>
                     {newReq.files.length > 0 && (
                     <div className="mt-3 space-y-2">
                         {newReq.files.map((f, i) => (
-                            <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-slate-100 px-3 py-1.5 rounded-md">
-                                <FileText className="w-4 h-4" /> {f.name}
+                            <div key={i} className="flex items-center justify-between gap-2 text-sm text-slate-600 bg-slate-100 px-3 py-2 rounded-md border border-slate-200">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-slate-400" /> 
+                                  <span className="truncate max-w-xs">{f.name}</span>
+                                </div>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleRemoveFile(i)}
+                                  className="text-slate-400 hover:text-red-500 transition"
+                                  title="Remove file"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -191,7 +230,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
               <div className="flex gap-4 pt-6 border-t border-slate-100">
                 <button 
                   type="button" 
-                  onClick={() => setView('DASHBOARD')}
+                  onClick={handleCancel}
                   className="px-6 py-2.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition font-medium"
                 >
                   Cancel

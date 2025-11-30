@@ -1,8 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, User, Calendar, AlertCircle, Bot, Code, Send, Check, Building, Layers, Clock, Loader2, Upload, FileCode, Trash2, Download, Copy, CheckCircle } from 'lucide-react';
-import { AutomationRequest, RequestStatus, AIAnalysis } from '../types';
+import { AutomationRequest, RequestStatus, AIAnalysis, Attachment } from '../types';
 import { saveRequest } from '../services/storageService';
 import { analyzeRequestWithGemini } from '../services/geminiService';
+import { sendEmailNotification } from '../services/notificationService';
 
 interface Props {
   request: AutomationRequest;
@@ -61,10 +63,13 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
     setLocalReq(updated);
     onUpdate();
     
-    // Simulate Email Notification
-    setTimeout(() => {
-        alert(`✅ Request marked as Completed.\n\n📧 Automated email notification sent to ${localReq.requesterName} (arch@design.com) with the attached script.`);
-    }, 500);
+    // Send Email Notification via Backend
+    await sendEmailNotification({
+      subject: `Request Completed: ${localReq.title}`,
+      body: `Good news! Your automation request "${localReq.title}" has been marked as COMPLETED by the development team.\n\nYou can now log in to the portal to view and download the result script.\n\nProject: ${localReq.projectName}\nCompleted: ${new Date().toLocaleDateString()}`
+    });
+
+    alert(`✅ Request marked as Completed.\n\n📧 Automated email notification sent to ${localReq.requesterName}.`);
   };
 
   const handleScriptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +101,26 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
       const file = new Blob([localReq.resultScript || ''], {type: 'text/plain'});
       element.href = URL.createObjectURL(file);
       element.download = localReq.resultFileName || "script.py";
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+  };
+
+  const handleDownloadAttachment = (att: Attachment) => {
+      // Decode Base64 to binary
+      const byteString = atob(att.data.split(',')[1]);
+      const mimeString = att.data.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], {type: mimeString});
+
+      // Create download link
+      const element = document.createElement("a");
+      element.href = URL.createObjectURL(blob);
+      element.download = att.name;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
@@ -189,19 +214,33 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
                 <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3">Attachments</h3>
                 <div className="flex gap-4 overflow-x-auto pb-2">
                   {localReq.attachments.map((att, idx) => (
-                    att.type.startsWith('image/') ? (
-                      <div key={idx} className="relative group">
-                          <img src={att.data} alt={att.name} className="h-40 w-auto rounded-lg border border-slate-200 object-cover shadow-sm group-hover:shadow-md transition" />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-lg flex items-center justify-center text-white text-xs">
-                              {att.name}
+                    <div key={idx} className="relative group flex-shrink-0">
+                        {att.type.startsWith('image/') ? (
+                            <img src={att.data} alt={att.name} className="h-40 w-auto rounded-lg border border-slate-200 object-cover shadow-sm group-hover:shadow-md transition" />
+                        ) : (
+                          <div className="h-40 w-32 bg-slate-50 rounded-lg border border-slate-200 flex flex-col items-center justify-center p-4 text-center hover:bg-slate-100 transition">
+                            <Code className="w-8 h-8 text-slate-400 mb-2" />
+                            <span className="text-xs text-slate-600 break-all">{att.name}</span>
                           </div>
-                      </div>
-                    ) : (
-                      <div key={idx} className="h-40 w-32 bg-slate-50 rounded-lg border border-slate-200 flex flex-col items-center justify-center p-4 text-center hover:bg-slate-100 transition">
-                        <Code className="w-8 h-8 text-slate-400 mb-2" />
-                        <span className="text-xs text-slate-600 break-all">{att.name}</span>
-                      </div>
-                    )
+                        )}
+                        
+                        {/* Download Overlay for Developer */}
+                        {isDeveloper && (
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-lg flex items-center justify-center gap-2">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); handleDownloadAttachment(att); }}
+                                    className="bg-white text-slate-800 p-2 rounded-full hover:bg-indigo-50 hover:text-indigo-600 transition"
+                                    title="Download File"
+                                >
+                                    <Download className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                         
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-1 truncate rounded-b-lg text-center opacity-0 group-hover:opacity-100 transition">
+                            {att.name}
+                        </div>
+                    </div>
                   ))}
                 </div>
               </div>
