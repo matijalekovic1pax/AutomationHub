@@ -1,6 +1,5 @@
-
 import { AIAnalysis, AutomationRequest } from "../types";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 const getSystemPrompt = (req: AutomationRequest) => `
 You are an expert Revit API Automation Engineer and Python Developer. 
@@ -14,15 +13,9 @@ Your goal is to provide a JSON response with:
 2. suggestedNamespaces: A list of relevant Autodesk.Revit.DB namespaces.
 3. implementationStrategy: A concise textual explanation of how to solve this.
 4. pseudoCode: A pythonic pseudo-code snippet using the Revit API structure.
-
-RETURN JSON ONLY.
 `;
 
 export const analyzeRequestWithGemini = async (request: AutomationRequest): Promise<AIAnalysis> => {
-  if (!process.env.API_KEY) {
-      throw new Error("API_KEY not set in environment");
-  }
-
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   // Prepare contents
@@ -47,7 +40,20 @@ export const analyzeRequestWithGemini = async (request: AutomationRequest): Prom
         model: 'gemini-2.5-flash',
         contents: { parts },
         config: {
-            responseMimeType: "application/json"
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    complexityScore: { type: Type.INTEGER },
+                    suggestedNamespaces: { 
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING }
+                    },
+                    implementationStrategy: { type: Type.STRING },
+                    pseudoCode: { type: Type.STRING }
+                },
+                required: ["complexityScore", "suggestedNamespaces", "implementationStrategy", "pseudoCode"]
+            }
         }
       });
 
@@ -61,7 +67,7 @@ export const analyzeRequestWithGemini = async (request: AutomationRequest): Prom
       return {
           complexityScore: 5,
           suggestedNamespaces: ["Autodesk.Revit.DB", "Autodesk.Revit.UI"],
-          implementationStrategy: "Error connecting to AI. Please check API Key.",
+          implementationStrategy: "Error connecting to AI. Please check API Key in .env file.",
           pseudoCode: "# AI Connection Failed\n# Please implement manually"
       };
   }
