@@ -120,7 +120,7 @@ const AppContent: React.FC = () => {
              <div className="bg-indigo-600 p-1.5 rounded-lg">
                 <Box className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-white tracking-tight">Revit Automation <span className="text-indigo-400">Hub</span></span>
+            <span className="font-bold text-lg text-white tracking-tight">Automation <span className="text-indigo-400">Hub</span></span>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-1">

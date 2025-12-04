@@ -30,7 +30,7 @@ export const Login: React.FC = () => {
             <div className="mx-auto w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4 shadow-lg shadow-indigo-900/50">
                 <Box className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Revit Automation <span className="text-indigo-400">Hub</span></h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Automation <span className="text-indigo-400">Hub</span></h1>
             <p className="text-slate-400 mt-2 text-sm">Automation Request Portal</p>
         </div>
         
@@ -84,20 +84,6 @@ export const Login: React.FC = () => {
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
                 </button>
             </form>
-
-            <div className="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-500">
-                <p className="font-semibold mb-2">Demo Credentials:</p>
-                <div className="flex justify-between gap-4">
-                    <button onClick={() => { setEmail('arch@design.com'); setPassword('revit'); }} className="flex-1 bg-slate-50 hover:bg-slate-100 p-2 rounded text-left border border-slate-200 transition">
-                        <div className="font-medium text-slate-800">Architect</div>
-                        <div className="text-slate-400">arch@design.com</div>
-                    </button>
-                    <button onClick={() => { setEmail('dev@code.com'); setPassword('python'); }} className="flex-1 bg-slate-50 hover:bg-slate-100 p-2 rounded text-left border border-slate-200 transition">
-                        <div className="font-medium text-slate-800">Developer</div>
-                        <div className="text-slate-400">dev@code.com</div>
-                    </button>
-                </div>
-            </div>
         </div>
       </div>
     </div>

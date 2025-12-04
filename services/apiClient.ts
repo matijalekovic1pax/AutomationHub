@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:8000';
+
+// Check for Vite environment variable first, fall back to localhost for local dev
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
 const getHeaders = () => {
   const token = sessionStorage.getItem('rah_access_token');
