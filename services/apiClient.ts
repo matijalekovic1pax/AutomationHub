@@ -1,6 +1,6 @@
 
 // Check for Vite environment variable first, fall back to localhost for local dev
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'https://automationhubbackend.onrender.com';
 
 const buildError = async (res: Response) => {
   try {
