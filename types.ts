@@ -3,7 +3,8 @@ export enum RequestStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  REJECTED = 'REJECTED'
+  REJECTED = 'REJECTED',
+  RETURNED = 'RETURNED'
 }
 
 export enum Priority {
@@ -13,10 +14,8 @@ export enum Priority {
   CRITICAL = 'CRITICAL'
 }
 
-export enum UserRole {
-  ARCHITECT = 'ARCHITECT',
-  DEVELOPER = 'DEVELOPER'
-}
+export const DEVELOPER_ROLE = 'DEVELOPER';
+export type UserRole = string;
 
 export interface User {
   id: string;
@@ -28,9 +27,27 @@ export interface User {
 }
 
 export interface Attachment {
+  id?: number;
   name: string;
   type: string;
   data: string; // Base64 data
+}
+
+export interface Comment {
+  id: number;
+  requestId: number;
+  userId?: number;
+  authorName: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface SubmissionEvent {
+  id: number;
+  requestId: number;
+  eventType: 'SUBMISSION' | 'RESUBMISSION';
+  createdAt: number;
+  addedFiles: number;
 }
 
 export interface AIAnalysis {
@@ -41,7 +58,7 @@ export interface AIAnalysis {
 }
 
 export interface AutomationRequest {
-  id: string;
+  id: string | number;
   title: string;
   requesterName: string;
   requesterId: string; // New: Link to user
@@ -62,7 +79,11 @@ export interface AutomationRequest {
   developerNotes?: string;
   resultScript?: string;
   resultFileName?: string; // New field for uploaded file name
+  resultFiles?: Attachment[];
   aiAnalysis?: AIAnalysis;
+  submissionCount?: number; // Tracks how many times the request was submitted/resubmitted
+  submissionEvents?: SubmissionEvent[];
+  comments?: Comment[];
 }
 
 export type ViewState = 'DASHBOARD' | 'LIST' | 'BOARD' | 'NEW' | 'DETAIL';

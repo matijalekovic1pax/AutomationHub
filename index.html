@@ -4,8 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Automation Hub</title>
-    <!-- We keep Tailwind CDN for simplicity as requested, though npm install is better for production -->
+        <!-- We keep Tailwind CDN for simplicity as requested, though npm install is better for production -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {}
+        }
+      }
+    </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
       body { font-family: 'Inter', sans-serif; }
