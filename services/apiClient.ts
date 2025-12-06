@@ -19,6 +19,7 @@ const getHeaders = () => {
   const token = sessionStorage.getItem('rah_access_token');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
   };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -31,6 +32,7 @@ export const apiClient = {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: 'GET',
       headers: getHeaders(),
+      cache: 'no-store',
     });
     if (!res.ok) throw await buildError(res);
     return res.json();
