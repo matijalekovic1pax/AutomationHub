@@ -506,9 +506,8 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     <button
                       onClick={handleSubmitFiles}
-                      disabled={pendingFiles.length === 0 || isSavingResults}
-                    className={`px-6 py-2 rounded-lg flex items-center gap-2 transition font-medium shadow-sm ${isSavingResults ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-                    disabled={isSavingResults}
+                      className={`px-6 py-2 rounded-lg flex items-center gap-2 transition font-medium shadow-sm ${isSavingResults ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                      disabled={isSavingResults}
                   >
                     {isSavingResults ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} {hasSubmission ? 'Resubmit Files' : 'Submit Files'}
                   </button>

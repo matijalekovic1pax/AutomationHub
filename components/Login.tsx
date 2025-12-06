@@ -47,15 +47,6 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
               </div>
             )}
 
-            {/* Demo Account Info */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <p className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-2">Demo Accounts:</p>
-              <div className="text-xs text-blue-800 dark:text-blue-400 space-y-1">
-                <p><strong>Architect:</strong> arch@design.com / revit</p>
-                <p><strong>Developer:</strong> dev@code.com / python</p>
-              </div>
-            </div>
-            
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Work Email</label>
               <input 
