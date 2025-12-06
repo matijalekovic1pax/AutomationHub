@@ -15,7 +15,8 @@ export enum Priority {
 }
 
 export const DEVELOPER_ROLE = 'DEVELOPER';
-export type UserRole = string;
+export const EMPLOYEE_ROLE = 'EMPLOYEE';
+export type UserRole = typeof DEVELOPER_ROLE | typeof EMPLOYEE_ROLE;
 
 export interface User {
   id: string;
@@ -23,6 +24,7 @@ export interface User {
   email: string;
   password?: string; // Added for auth logic
   role: UserRole;
+  companyTitle?: string;
   avatar?: string;
 }
 

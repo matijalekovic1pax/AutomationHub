@@ -256,7 +256,7 @@ const AppContent: React.FC = () => {
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
               <p className="text-xs text-slate-500 truncate">
-                {user.role === DEVELOPER_ROLE ? 'Lead Automation Eng.' : (user.role || 'Employee')}
+                {user.companyTitle || (user.role === DEVELOPER_ROLE ? 'Developer' : 'Employee')}
               </p>
             </div>
           </div>

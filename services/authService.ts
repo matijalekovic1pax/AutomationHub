@@ -39,10 +39,14 @@ export const getAllUsers = async (): Promise<User[]> => {
   return await apiClient.get('/users');
 };
 
-export const createUser = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
-  return await apiClient.post('/users', { name, email, password, role });
+export const createUser = async (name: string, email: string, password: string, role: UserRole, companyTitle?: string): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, role, companyTitle });
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
   await apiClient.delete(`/users/${id}`);
+};
+
+export const updateUser = async (id: string | number, payload: Partial<Pick<User, 'role' | 'companyTitle'>>): Promise<User> => {
+  return await apiClient.put(`/users/${id}`, payload);
 };

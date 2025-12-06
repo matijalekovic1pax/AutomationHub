@@ -6,6 +6,7 @@ interface RegistrationRequest {
   id: number;
   name: string;
   email: string;
+  companyTitle?: string;
   status: string;
   createdAt: number;
   reviewedBy?: number;
@@ -16,7 +17,6 @@ export const RegistrationManagement: React.FC = () => {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<number | null>(null);
-  const [roleInputs, setRoleInputs] = useState<Record<number, string>>({});
 
   useEffect(() => {
     loadRequests();
@@ -34,14 +34,9 @@ export const RegistrationManagement: React.FC = () => {
   };
 
   const handleApprove = async (id: number) => {
-    const role = (roleInputs[id] || '').trim();
-    if (!role) {
-      alert('Please enter a role for the user before approving.');
-      return;
-    }
     setProcessing(id);
     try {
-      await apiClient.post(`/registration-requests/${id}/approve`, { role });
+      await apiClient.post(`/registration-requests/${id}/approve`);
       await loadRequests();
       alert('Registration approved successfully!');
     } catch (err: any) {
@@ -124,6 +119,11 @@ export const RegistrationManagement: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 mt-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                        <UserPlus className="w-3 h-3 text-indigo-500" /> {req.companyTitle || 'Company title not provided'}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500 mt-2">
                       <Clock className="w-3.5 h-3.5" />
                       Requested {new Date(req.createdAt).toLocaleString()}
@@ -131,13 +131,6 @@ export const RegistrationManagement: React.FC = () => {
                   </div>
                   
                   <div className="flex gap-3 items-center">
-                    <input
-                      type="text"
-                      className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
-                      placeholder="Role (e.g. Engineer)"
-                      value={roleInputs[req.id] || ''}
-                      onChange={(e) => setRoleInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
-                    />
                     <button
                       onClick={() => handleReject(req.id)}
                       disabled={processing === req.id}
@@ -173,6 +166,7 @@ export const RegistrationManagement: React.FC = () => {
                 <tr>
                   <th className="px-6 py-4">User</th>
                   <th className="px-6 py-4">Email</th>
+                  <th className="px-6 py-4">Company Title</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Processed</th>
                 </tr>
@@ -182,6 +176,7 @@ export const RegistrationManagement: React.FC = () => {
                   <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{req.name}</td>
                     <td className="px-6 py-4">{req.email}</td>
+                    <td className="px-6 py-4 text-slate-700 dark:text-slate-200">{req.companyTitle || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         req.status === 'APPROVED' 
