@@ -174,7 +174,7 @@ export const RegistrationManagement: React.FC = () => {
                   <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{req.name}</td>
                     <td className="px-6 py-4">{req.email}</td>
-                    <td className="px-6 py-4">{req.companyRole || '—'}</td>
+                    <td className="px-6 py-4">{req.companyRole || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         req.status === 'APPROVED' 

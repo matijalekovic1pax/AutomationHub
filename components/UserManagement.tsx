@@ -61,11 +61,18 @@ export const UserManagement: React.FC = () => {
   const handleDeleteUser = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this user?');
     if (!confirmed) return;
-    setUsers(prev => prev.filter(u => u.id !== id));
-    await deleteUser(id);
-    await loadUsers();
-    setIsAddingUser(false);
-    setBanner('User removed and list refreshed');
+    setLoadingUserId(id.toString());
+    setBanner(null);
+    try {
+      await deleteUser(id);
+      await loadUsers();
+      setIsAddingUser(false);
+      setBanner('User removed and list refreshed');
+    } catch (err: any) {
+      setBanner(err.message || 'Failed to delete user');
+    } finally {
+      setLoadingUserId(null);
+    }
   };
 
   return (
@@ -109,7 +116,7 @@ export const UserManagement: React.FC = () => {
                         className="w-full px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-md text-sm pr-8" 
                         value={newUser.password} 
                         onChange={e => setNewUser({...newUser, password: e.target.value})} 
-                        placeholder="••••••" 
+                        placeholder="********" 
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-7 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
                         {showPassword ? <EyeOff className="w-3 h-3"/> : <Eye className="w-3 h-3"/>}
@@ -166,7 +173,7 @@ export const UserManagement: React.FC = () => {
                   <td className="px-6 py-4 flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" /> {u.email}
                   </td>
-                  <td className="px-6 py-4 text-slate-900 dark:text-slate-100">{u.companyRole || '—'}</td>
+                  <td className="px-6 py-4 text-slate-900 dark:text-slate-100">{u.companyRole || 'N/A'}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${u.role === DEVELOPER_ROLE ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-200' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200'}`}>
                        <Shield className="w-3 h-3" /> {u.role === DEVELOPER_ROLE ? 'Developer' : 'Employee'}
@@ -181,7 +188,12 @@ export const UserManagement: React.FC = () => {
                         >
                           {loadingUserId === u.id.toString() ? 'Updating...' : (u.role === DEVELOPER_ROLE ? 'Demote' : 'Promote to Dev')}
                         </button>
-                        <button onClick={() => handleDeleteUser(u.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition" title="Remove User">
+                        <button 
+                          disabled={loadingUserId === u.id.toString()}
+                          onClick={() => handleDeleteUser(u.id)} 
+                          className={`text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition ${loadingUserId === u.id.toString() ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                          title="Remove User"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                      </div>
