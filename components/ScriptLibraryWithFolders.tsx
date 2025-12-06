@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderPlus, Folder as FolderIcon, FolderOpen, FileCode, Search, ChevronRight, ChevronDown, Loader2, Trash2, MoveRight, Shield, ArrowUp, Edit2 } from 'lucide-react';
 import { AutomationRequest, DEVELOPER_ROLE } from '../types';
-import { apiClient } from '../services/apiClient';
+import { apiClient, API_URL } from '../services/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 interface ScriptTreeNode {
@@ -269,7 +269,7 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
     setFeedback(null);
     try {
       const token = sessionStorage.getItem('rah_access_token');
-      const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:8000'}/script-tree/export`, {
+      const res = await fetch(`${API_URL}/script-tree/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) {

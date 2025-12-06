@@ -1,6 +1,8 @@
 
-// API base: prefer Vite env var, fallback to local backend for dev
-const API_URL = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:8000";
+// API base: prefer Vite env var, fallback to the deployed backend, trim trailing slash
+const DEFAULT_API_URL = "https://automation-hub-backend.vercel.app";
+const rawBaseUrl = (import.meta as any).env?.VITE_API_URL as string | undefined;
+export const API_URL = (rawBaseUrl && rawBaseUrl.trim().length > 0 ? rawBaseUrl : DEFAULT_API_URL).replace(/\/$/, "");
 
 const buildError = async (res: Response) => {
   try {
