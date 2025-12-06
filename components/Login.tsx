@@ -39,7 +39,7 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
         </div>
         
         <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -52,6 +52,8 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
               <input 
                 type="email" 
                 required
+                name="email"
+                autoComplete="email"
                 className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                 placeholder="you@company.com"
                 value={email}
@@ -65,6 +67,8 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
                 <input 
                   type={showPassword ? "text" : "password"}
                   required
+                  name="password"
+                  autoComplete="current-password"
                   className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none pr-10"
                   placeholder="********"
                   value={password}
