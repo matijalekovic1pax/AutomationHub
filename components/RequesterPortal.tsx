@@ -35,6 +35,8 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
   const pendingCount = myRequests.filter(r => r.status === RequestStatus.PENDING).length;
   const inProgressCount = myRequests.filter(r => r.status === RequestStatus.IN_PROGRESS).length;
   const completedCount = myRequests.filter(r => r.status === RequestStatus.COMPLETED).length;
+  const awaitingRequests = myRequests.filter(r => r.status !== RequestStatus.COMPLETED);
+  const doneRequests = myRequests.filter(r => r.status === RequestStatus.COMPLETED);
 
   const [newReq, setNewReq] = useState(INITIAL_REQ_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -371,55 +373,124 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
               <p className="text-slate-500 dark:text-slate-300 mb-6">Start by submitting your first automation idea.</p>
            </div>
         ) : (
-            <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-200">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold uppercase text-xs">
-                        <tr>
-                            <th className="px-6 py-4">Title</th>
-                            <th className="px-6 py-4">Project</th>
-                            <th className="px-6 py-4">Created</th>
-                            <th className="px-6 py-4">Priority</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {myRequests.map(req => {
-                            const submissionCount = req.submissionCount ?? (req as any).submissionEvents?.length ?? 0;
-                            return (
-                                <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" onClick={() => onViewRequest(req)}>
-                                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{req.title}</td>
-                                    <td className="px-6 py-4">{req.projectName}</td>
-                                    <td className="px-6 py-4">{new Date(req.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${priorityClasses(req.priority)}`}>
-                                            {req.priority}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                        req.status === RequestStatus.COMPLETED ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                                        req.status === RequestStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200' :
-                                        req.status === RequestStatus.RETURNED ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200' :
-                                        req.status === RequestStatus.REJECTED ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' :
-                                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200'
-                                    }`}>
-                                        {req.status.replace('_', ' ')}
-                                    </span>
-                                        {submissionCount > 1 && (
-                                          <span className="ml-2 text-[11px] text-slate-500 dark:text-slate-300">
-                                            ({submissionCount - 1} resubmit{submissionCount - 1 === 1 ? '' : 's'})
+            <div className="space-y-8">
+              <div>
+                <div className="flex items-center justify-between px-6 pt-6">
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Awaiting / In progress</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{awaitingRequests.length} item{awaitingRequests.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-200">
+                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold uppercase text-xs">
+                          <tr>
+                              <th className="px-6 py-4">Title</th>
+                              <th className="px-6 py-4">Project</th>
+                              <th className="px-6 py-4">Created</th>
+                              <th className="px-6 py-4">Priority</th>
+                              <th className="px-6 py-4">Status</th>
+                              <th className="px-6 py-4 text-right">Action</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {awaitingRequests.map(req => {
+                              const submissionCount = req.submissionCount ?? (req as any).submissionEvents?.length ?? 0;
+                              return (
+                                  <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" onClick={() => onViewRequest(req)}>
+                                      <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{req.title}</td>
+                                      <td className="px-6 py-4">{req.projectName}</td>
+                                      <td className="px-6 py-4">{new Date(req.createdAt).toLocaleDateString()}</td>
+                                      <td className="px-6 py-4">
+                                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${priorityClasses(req.priority)}`}>
+                                              {req.priority}
                                           </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium text-xs">View Details</button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                      </td>
+                                      <td className="px-6 py-4">
+                                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                          req.status === RequestStatus.COMPLETED ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
+                                          req.status === RequestStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200' :
+                                          req.status === RequestStatus.RETURNED ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200' :
+                                          req.status === RequestStatus.REJECTED ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' :
+                                          'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200'
+                                      }`}>
+                                          {req.status.replace('_', ' ')}
+                                      </span>
+                                          {submissionCount > 1 && (
+                                            <span className="ml-2 text-[11px] text-slate-500 dark:text-slate-300">
+                                              ({submissionCount - 1} resubmit{submissionCount - 1 === 1 ? '' : 's'})
+                                            </span>
+                                          )}
+                                      </td>
+                                      <td className="px-6 py-4 text-right">
+                                          <button className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium text-xs">View Details</button>
+                                      </td>
+                                  </tr>
+                              );
+                          })}
+                          {awaitingRequests.length === 0 && (
+                            <tr>
+                              <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300" colSpan={6}>No active requests.</td>
+                            </tr>
+                          )}
+                      </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+                <div className="flex items-center justify-between px-6 pb-2">
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Completed</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{doneRequests.length} item{doneRequests.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-200">
+                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold uppercase text-xs">
+                          <tr>
+                              <th className="px-6 py-4">Title</th>
+                              <th className="px-6 py-4">Project</th>
+                              <th className="px-6 py-4">Created</th>
+                              <th className="px-6 py-4">Priority</th>
+                              <th className="px-6 py-4">Status</th>
+                              <th className="px-6 py-4 text-right">Action</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {doneRequests.map(req => {
+                              const submissionCount = req.submissionCount ?? (req as any).submissionEvents?.length ?? 0;
+                              return (
+                                  <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" onClick={() => onViewRequest(req)}>
+                                      <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{req.title}</td>
+                                      <td className="px-6 py-4">{req.projectName}</td>
+                                      <td className="px-6 py-4">{new Date(req.createdAt).toLocaleDateString()}</td>
+                                      <td className="px-6 py-4">
+                                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${priorityClasses(req.priority)}`}>
+                                              {req.priority}
+                                          </span>
+                                      </td>
+                                      <td className="px-6 py-4">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                                          Completed
+                                      </span>
+                                          {submissionCount > 1 && (
+                                            <span className="ml-2 text-[11px] text-slate-500 dark:text-slate-300">
+                                              ({submissionCount - 1} resubmit{submissionCount - 1 === 1 ? '' : 's'})
+                                            </span>
+                                          )}
+                                      </td>
+                                      <td className="px-6 py-4 text-right">
+                                          <button className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 font-medium text-xs">View Details</button>
+                                      </td>
+                                  </tr>
+                              );
+                          })}
+                          {doneRequests.length === 0 && (
+                            <tr>
+                              <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300" colSpan={6}>No completed requests yet.</td>
+                            </tr>
+                          )}
+                      </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 {
-  "name": "Revit Automation Hub",
-  "description": "A centralized portal for architects to request Revit automation scripts and for engineers to manage, analyze (via Gemini), and deliver Python solutions.",
+  "name": "Automation Hub",
+  "description": "A centralized portal for teams to request automation scripts and for engineers to manage, analyze, and deliver solutions.",
   "requestFramePermissions": []
 }

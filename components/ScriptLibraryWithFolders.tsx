@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FolderPlus, Folder as FolderIcon, FolderOpen, FileCode, Search, ChevronRight, ChevronDown, Loader2, Trash2, MoveRight, Shield, MoreHorizontal, ArrowUp, Edit2 } from 'lucide-react';
+import { FolderPlus, Folder as FolderIcon, FolderOpen, FileCode, Search, ChevronRight, ChevronDown, Loader2, Trash2, MoveRight, Shield, ArrowUp, Edit2 } from 'lucide-react';
 import { AutomationRequest, DEVELOPER_ROLE } from '../types';
 import { apiClient } from '../services/apiClient';
 import { useAuth } from '../context/AuthContext';
@@ -84,10 +84,10 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderParent, setNewFolderParent] = useState<number | null>(null);
   const [search, setSearch] = useState('');
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   const requestIndex = useMemo(() => {
     const map = new Map<string | number, AutomationRequest>();
@@ -264,6 +264,34 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
     }
   };
 
+  const handleDownloadAll = async () => {
+    setDownloadingAll(true);
+    setFeedback(null);
+    try {
+      const token = sessionStorage.getItem('rah_access_token');
+      const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:8000'}/script-tree/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to download library');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'script-library.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setFeedback(err.message || 'Failed to download library');
+    } finally {
+      setDownloadingAll(false);
+    }
+  };
+
   const renderFolderTree = (node: ScriptTreeNode, depth = 0) => {
     if (node.type !== 'FOLDER') return null;
     const isSelected = node.id === selectedFolderId;
@@ -329,23 +357,35 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
   return (
     <div className="space-y-4">
       <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Script Library</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Read access for all users; only developers can organize.
-            </p>
+        <div className="flex flex-col gap-3 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Script Library</h1>
+              <button
+                onClick={handleDownloadAll}
+                className="px-3 py-2 text-sm rounded-lg bg-slate-900 text-white hover:bg-slate-800 flex items-center gap-2"
+                disabled={downloadingAll}
+              >
+                {downloadingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCode className="w-4 h-4" />} Download Library
+              </button>
+            </div>
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search scripts..."
+                className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search scripts..."
-              className="pl-9 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Read access for everyone; only developers can organize. Anyone can export a full copy.
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Downloading exports the entire library as a zip (all folders and files). Treat it as a full backup and store it securely.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[320px,1fr] gap-4">
@@ -404,21 +444,21 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
 
               {isDeveloper && (
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
-                  <span className="px-2 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200">Completed requests drop into “Unsorted”. Move them where they belong.</span>
+                  <span className="px-2 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200">Completed requests drop into "Unsorted". Move them where they belong.</span>
                 </div>
               )}
             </div>
 
             <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="bg-slate-50 dark:bg-slate-800 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-300 px-3 py-2 grid grid-cols-[minmax(0,1fr)_160px] gap-2">
+              <div className="bg-slate-50 dark:bg-slate-800 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-300 px-3 py-2 grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                 <span>Name</span>
-                <span className="text-right">Actions</span>
+                <span className="text-right pr-1">Actions</span>
               </div>
               {childFolders.length === 0 && filteredScripts.length === 0 ? (
                 <div className="text-center py-10 text-slate-500 dark:text-slate-300">
                   <FileCode className="w-10 h-10 text-slate-400 mx-auto mb-3" />
                   <p className="font-medium">Nothing here yet</p>
-                  <p className="text-sm">Completed requests land in “Unsorted”. Move them into the right folder.</p>
+                  <p className="text-sm">Completed requests land in "Unsorted". Move them into the right folder.</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -429,17 +469,20 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
                     return (
                       <div
                         key={node.id}
-                        className="grid grid-cols-[minmax(0,1fr)_160px] gap-2 items-center px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        onMouseLeave={() => setOpenMenuId(null)}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 min-w-0"
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           {kind === 'folder' ? (
-                            <FolderOpen className="w-4 h-4 text-indigo-500" />
+                            (expanded.has(node.id) || selectedFolderId === node.id) ? (
+                              <FolderOpen className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                            ) : (
+                              <FolderIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            )
                           ) : (
-                            <FileCode className="w-4 h-4 text-slate-500" />
+                            <FileCode className="w-4 h-4 text-slate-500 flex-shrink-0" />
                           )}
                           {editingId === node.id ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
                               <input
                                 value={editingName}
                                 onChange={(e) => setEditingName(e.target.value)}
@@ -459,20 +502,29 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
                               </button>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => kind === 'folder' ? setSelectedFolderId(node.id) : req && onViewRequest(req)}
-                              className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate text-left hover:text-indigo-600"
-                            >
-                              {node.name}
-                            </button>
+                            <div className="min-w-0">
+                              <button
+                                onClick={() => {
+                                  if (kind === 'folder') {
+                                    setSelectedFolderId(node.id);
+                                    setExpanded((prev) => new Set(prev).add(node.id));
+                                  } else if (req) {
+                                    onViewRequest(req);
+                                  }
+                                }}
+                                className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate text-left hover:text-indigo-600"
+                              >
+                                {node.name}
+                              </button>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-300 truncate">
+                                {kind === 'folder'
+                                  ? childCount ? `${childCount} item${childCount === 1 ? '' : 's'}` : 'Empty folder'
+                                  : 'File'}
+                              </p>
+                            </div>
                           )}
-                          <p className="text-[11px] text-slate-500 dark:text-slate-300 truncate">
-                            {kind === 'folder'
-                              ? childCount ? `${childCount} item${childCount === 1 ? '' : 's'}` : 'Empty folder'
-                              : 'File'}
-                          </p>
                         </div>
-                        <div className="flex justify-end items-center gap-2">
+                        <div className="flex justify-end items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                           {kind === 'file' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDownload(e, node as ScriptTreeNode); }}
@@ -490,14 +542,14 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
                                 <Edit2 className="w-3 h-3" /> Rename
                               </button>
                               <select
-                                className="text-xs border border-slate-300 dark:border-slate-600 rounded-md px-2 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200"
+                                className="text-xs border border-slate-300 dark:border-slate-600 rounded-md px-2 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 max-w-[180px]"
                                 defaultValue=""
                                 onChange={(e) => {
                                   if (e.target.value) moveNode(node.id, Number(e.target.value));
                                   e.target.value = '';
                                 }}
                               >
-                                <option value="">{kind === 'folder' ? 'Move folder…' : 'Move file…'}</option>
+                                <option value="">{kind === 'folder' ? 'Move folder...' : 'Move file...'}</option>
                                 {destinations.map((opt) => (
                                   <option key={opt.id} value={opt.id}>{' '.repeat(opt.depth * 2)}{opt.name}</option>
                                 ))}
