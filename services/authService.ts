@@ -46,3 +46,7 @@ export const createUser = async (name: string, email: string, password: string, 
 export const deleteUser = async (id: string): Promise<void> => {
   await apiClient.delete(`/users/${id}`);
 };
+
+export const updateUserRole = async (id: string, role: UserRole): Promise<User> => {
+  return await apiClient.patch(`/users/${id}/role`, { role });
+};

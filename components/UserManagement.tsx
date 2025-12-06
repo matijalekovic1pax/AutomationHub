@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Shield, Trash2, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { User, UserRole, DEVELOPER_ROLE } from '../types';
-import { getAllUsers, createUser, deleteUser } from '../services/authService';
+import { getAllUsers, createUser, deleteUser, updateUserRole } from '../services/authService';
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   
   const [newUser, setNewUser] = useState({ 
     name: '', 
@@ -39,6 +40,20 @@ export const UserManagement: React.FC = () => {
       setBanner('User added successfully');
     } catch (err: any) {
       setBanner(err.message || 'Failed to add user');
+    }
+  };
+
+  const handleChangeRole = async (targetUser: User, targetRole: UserRole) => {
+    setLoadingUserId(targetUser.id.toString());
+    setBanner(null);
+    try {
+      await updateUserRole(targetUser.id.toString(), targetRole);
+      await loadUsers();
+      setBanner(targetRole === DEVELOPER_ROLE ? 'User promoted to developer privileges' : 'Developer privileges removed');
+    } catch (err: any) {
+      setBanner(err.message || 'Failed to update role');
+    } finally {
+      setLoadingUserId(null);
     }
   };
 
@@ -143,9 +158,18 @@ export const UserManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                     <button onClick={() => handleDeleteUser(u.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition" title="Remove User">
-                        <Trash2 className="w-4 h-4" />
-                     </button>
+                     <div className="flex items-center justify-end gap-2">
+                        <button 
+                          disabled={loadingUserId === u.id.toString()}
+                          onClick={() => handleChangeRole(u, u.role === DEVELOPER_ROLE ? 'ARCHITECT' : DEVELOPER_ROLE)}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition ${u.role === DEVELOPER_ROLE ? 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:bg-amber-900/20 dark:hover:bg-amber-900/40' : 'border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100 dark:border-purple-800 dark:text-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/40'} ${loadingUserId === u.id.toString() ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                          {loadingUserId === u.id.toString() ? 'Updating...' : (u.role === DEVELOPER_ROLE ? 'Demote' : 'Promote to Dev')}
+                        </button>
+                        <button onClick={() => handleDeleteUser(u.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition" title="Remove User">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                     </div>
                   </td>
                 </tr>
               ))}

@@ -62,6 +62,7 @@ export interface AutomationRequest {
   title: string;
   requesterName: string;
   requesterId: string; // New: Link to user
+  requesterRole: UserRole;
   
   // New Metadata Fields
   projectName: string;

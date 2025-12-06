@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, User, Bot, Code, Send, Building, Layers, Clock, Loader2, Upload, FileCode, Download } from 'lucide-react';
+import { ArrowLeft, User, Bot, Code, Send, Building, Layers, Clock, Loader2, Upload, FileCode, Download, UserCheck } from 'lucide-react';
 import { AutomationRequest, RequestStatus, AIAnalysis, Attachment, Comment } from '../types';
 import { saveRequest, fileToBase64 } from '../services/storageService';
 import { analyzeRequestWithGemini } from '../services/geminiService';
@@ -377,7 +377,7 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
               )}
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-8 border border-slate-100 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-8 border border-slate-100 dark:border-slate-700">
                 <div>
                     <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Project</span>
                     <div className="flex items-center font-medium text-slate-900 dark:text-slate-100"><Building className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {localReq.projectName}</div>
@@ -389,6 +389,10 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
                 <div>
                     <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Requester</span>
                     <div className="flex items-center font-medium text-slate-900 dark:text-slate-100"><User className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {localReq.requesterName}</div>
+                </div>
+                <div>
+                    <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Requester Role</span>
+                    <div className="flex items-center font-medium text-slate-900 dark:text-slate-100"><UserCheck className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {localReq.requesterRole || (localReq as any).requester?.role || 'Not specified'}</div>
                 </div>
                  <div>
                     <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Due Date</span>

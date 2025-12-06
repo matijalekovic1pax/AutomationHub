@@ -61,6 +61,16 @@ export const apiClient = {
       return res.json();
   },
 
+  patch: async (endpoint: string, body: any) => {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw await buildError(res);
+    return res.json();
+  },
+
   put: async (endpoint: string, body: any) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       method: 'PUT',
