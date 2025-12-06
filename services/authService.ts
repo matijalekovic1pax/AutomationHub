@@ -3,33 +3,34 @@ import { User, UserRole } from '../types';
 import { apiClient } from './apiClient';
 
 export const login = async (email: string, password?: string): Promise<User> => {
-  // Conforms to OAuth2 standard or custom login endpoint defined in backend spec
   const response = await apiClient.post('/auth/login', { username: email, password });
   
   if (response.access_token) {
       sessionStorage.setItem('rah_access_token', response.access_token);
-      // We assume the login response also returns the user profile, 
-      // or we fetch it immediately after.
+      localStorage.setItem('rah_access_token', response.access_token);
       return response.user;
   }
   throw new Error('Login failed: No access token received');
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  const token = sessionStorage.getItem('rah_access_token');
+  const token = localStorage.getItem('rah_access_token') || sessionStorage.getItem('rah_access_token');
   if (!token) return null;
   
   try {
     return await apiClient.get('/users/me');
-  } catch (e) {
-    // Token might be expired
-    logout();
-    return null;
+  } catch (e: any) {
+    if (e?.status === 401) {
+      logout();
+      return null;
+    }
+    throw e;
   }
 };
 
 export const logout = () => {
   sessionStorage.removeItem('rah_access_token');
+  localStorage.removeItem('rah_access_token');
   window.location.reload();
 };
 

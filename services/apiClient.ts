@@ -3,28 +3,29 @@
 const RAW_API_URL = (import.meta as any).env?.VITE_API_URL ?? "https://automation-hub-backend.vercel.app";
 const API_URL = RAW_API_URL.replace(/\/+$/, "");
 
-const buildError = async (res: Response) => {
+type ApiError = Error & { status?: number };
+
+const buildError = async (res: Response): Promise<ApiError> => {
   try {
     const data = await res.json();
     const detail = (data as any)?.detail || (data as any)?.message;
-    if (res.status === 401) {
-      sessionStorage.removeItem('rah_access_token');
-      sessionStorage.removeItem('rah_current_user_id');
-    }
-    if (detail) return new Error(detail);
-    return new Error(JSON.stringify(data));
+    const err: ApiError = detail ? new Error(detail) : new Error(JSON.stringify(data));
+    err.status = res.status;
+    return err;
   } catch {
-    if (res.status === 401) {
-      sessionStorage.removeItem('rah_access_token');
-      sessionStorage.removeItem('rah_current_user_id');
-    }
     const text = await res.text();
-    return new Error(text || res.statusText);
+    const err: ApiError = new Error(text || res.statusText);
+    err.status = res.status;
+    return err;
   }
 };
 
+const getToken = () => {
+  return localStorage.getItem('rah_access_token') || sessionStorage.getItem('rah_access_token');
+};
+
 const getHeaders = () => {
-  const token = sessionStorage.getItem('rah_access_token');
+  const token = getToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',

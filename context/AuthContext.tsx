@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user = await apiLogin(email, password);
       setUser(user);
       sessionStorage.setItem('rah_current_user_id', user.id);
+      localStorage.setItem('rah_current_user_id', user.id);
     } finally {
       setIsLoading(false);
     }
