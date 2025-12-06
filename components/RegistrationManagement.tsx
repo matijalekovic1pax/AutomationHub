@@ -1,29 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Clock, CheckCircle, XCircle, Loader2, UserPlus } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
-import { EMPLOYEE_ROLE, DEVELOPER_ROLE, UserRole } from '../types';
 
 interface RegistrationRequest {
   id: number;
   name: string;
   email: string;
-  companyRole?: string;
   status: string;
   createdAt: number;
   reviewedBy?: number;
   reviewedAt?: number;
-  companyRole?: string;
 }
 
 export const RegistrationManagement: React.FC = () => {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<number | null>(null);
-<<<<<<< HEAD
-  const [roleInputs, setRoleInputs] = useState<Record<number, UserRole>>({});
-  const [companyRoleInputs, setCompanyRoleInputs] = useState<Record<number, string>>({});
-=======
->>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
+  const [roleInputs, setRoleInputs] = useState<Record<number, string>>({});
 
   useEffect(() => {
     loadRequests();
@@ -33,14 +26,6 @@ export const RegistrationManagement: React.FC = () => {
     try {
       const data = await apiClient.get('/registration-requests');
       setRequests(data);
-      const nextRoles: Record<number, UserRole> = {};
-      const nextCompanyRoles: Record<number, string> = {};
-      (data || []).forEach((req: RegistrationRequest) => {
-        nextRoles[req.id] = roleInputs[req.id] || EMPLOYEE_ROLE;
-        if (req.companyRole) nextCompanyRoles[req.id] = req.companyRole;
-      });
-      setRoleInputs(nextRoles);
-      setCompanyRoleInputs(prev => ({ ...nextCompanyRoles, ...prev }));
     } catch (err) {
       console.error('Failed to load registration requests:', err);
     } finally {
@@ -48,19 +33,15 @@ export const RegistrationManagement: React.FC = () => {
     }
   };
 
-<<<<<<< HEAD
   const handleApprove = async (id: number) => {
-    const role = roleInputs[id] || EMPLOYEE_ROLE;
-    const companyRole = (companyRoleInputs[id] || '').trim();
+    const role = (roleInputs[id] || '').trim();
+    if (!role) {
+      alert('Please enter a role for the user before approving.');
+      return;
+    }
     setProcessing(id);
     try {
-      await apiClient.post(`/registration-requests/${id}/approve`, { role, companyRole: companyRole || undefined });
-=======
-  const handleApprove = async (id: number, companyRole?: string) => {
-    setProcessing(id);
-    try {
-      await apiClient.post(`/registration-requests/${id}/approve`, companyRole ? { companyRole } : {});
->>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
+      await apiClient.post(`/registration-requests/${id}/approve`, { role });
       await loadRequests();
       alert('Registration approved successfully!');
     } catch (err: any) {
@@ -147,31 +128,16 @@ export const RegistrationManagement: React.FC = () => {
                       <Clock className="w-3.5 h-3.5" />
                       Requested {new Date(req.createdAt).toLocaleString()}
                     </div>
-                    </div>
-                    
+                  </div>
+                  
                   <div className="flex gap-3 items-center">
-<<<<<<< HEAD
-                    <div className="flex flex-col gap-2">
-                      <select
-                        className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
-                        value={roleInputs[req.id] || EMPLOYEE_ROLE}
-                        onChange={(e) => setRoleInputs(prev => ({ ...prev, [req.id]: e.target.value as UserRole }))}
-                      >
-                        <option value={EMPLOYEE_ROLE}>Employee</option>
-                        <option value={DEVELOPER_ROLE}>Developer</option>
-                      </select>
-                      <input
-                        type="text"
-                        className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
-                        placeholder="Company role (e.g. Architect)"
-                        value={companyRoleInputs[req.id] || ''}
-                        onChange={(e) => setCompanyRoleInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
-                      />
-=======
-                    <div className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
-                      {req.companyRole || 'Role not provided'}
->>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
-                    </div>
+                    <input
+                      type="text"
+                      className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                      placeholder="Role (e.g. Engineer)"
+                      value={roleInputs[req.id] || ''}
+                      onChange={(e) => setRoleInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
+                    />
                     <button
                       onClick={() => handleReject(req.id)}
                       disabled={processing === req.id}
@@ -181,7 +147,7 @@ export const RegistrationManagement: React.FC = () => {
                       Reject
                     </button>
                     <button
-                      onClick={() => handleApprove(req.id, req.companyRole)}
+                      onClick={() => handleApprove(req.id)}
                       disabled={processing === req.id}
                       className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition flex items-center gap-2 font-medium shadow-sm"
                     >
@@ -207,7 +173,6 @@ export const RegistrationManagement: React.FC = () => {
                 <tr>
                   <th className="px-6 py-4">User</th>
                   <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Company Role</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Processed</th>
                 </tr>
@@ -217,7 +182,6 @@ export const RegistrationManagement: React.FC = () => {
                   <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{req.name}</td>
                     <td className="px-6 py-4">{req.email}</td>
-                    <td className="px-6 py-4">{req.companyRole || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         req.status === 'APPROVED' 

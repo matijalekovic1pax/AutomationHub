@@ -1,5 +1,5 @@
 
-import { User, UserRole, EMPLOYEE_ROLE } from '../types';
+import { User, UserRole } from '../types';
 import { apiClient } from './apiClient';
 
 export const login = async (email: string, password?: string): Promise<User> => {
@@ -39,33 +39,10 @@ export const getAllUsers = async (): Promise<User[]> => {
   return await apiClient.get('/users');
 };
 
-<<<<<<< HEAD
-export const createUser = async (
-  name: string,
-  email: string,
-  password: string,
-  role: UserRole = EMPLOYEE_ROLE,
-  companyRole?: string
-): Promise<User> => {
-  return await apiClient.post('/users', { name, email, password, role, companyRole });
-=======
-export const createUser = async (name: string, email: string, password: string, companyRole: string, role: UserRole): Promise<User> => {
-  return await apiClient.post('/users', { name, email, password, companyRole, role });
->>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
+export const createUser = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, role });
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
   await apiClient.delete(`/users/${id}`);
-};
-
-export const updateUserRole = async (id: string, role: UserRole): Promise<User> => {
-  return await apiClient.patch(`/users/${id}/role`, { role });
-};
-
-<<<<<<< HEAD
-export const deleteDemoAccounts = async (): Promise<void> => {
-=======
-export const removeDemoAccounts = async (): Promise<void> => {
->>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
-  await apiClient.delete('/users/demo-accounts');
 };
