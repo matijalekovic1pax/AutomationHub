@@ -14,30 +14,17 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const performLogin = async (emailToUse: string, passwordToUse: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
     setIsSubmitting(true);
     try {
-      await login(emailToUse, passwordToUse);
+      await login(email, password);
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await performLogin(email, password);
-  };
-
-  const handleDemoLogin = async (type: 'dev' | 'employee') => {
-    const creds = type === 'dev'
-      ? { email: 'dev@code.com', password: 'python' }
-      : { email: 'arch@design.com', password: 'revit' };
-    setEmail(creds.email);
-    setPassword(creds.password);
-    await performLogin(creds.email, creds.password);
   };
 
   return (
@@ -100,34 +87,6 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
             </button>
-
-            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                <span className="font-semibold text-slate-700 dark:text-slate-200">Use preloaded demo accounts</span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">Remove after onboarding</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleDemoLogin('dev')}
-                  className="w-full px-4 py-2 rounded-lg border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 font-semibold transition"
-                >
-                  Demo Developer
-                </button>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleDemoLogin('employee')}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold transition"
-                >
-                  Demo Employee
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
-                Developer: dev@code.com / python | Employee: arch@design.com / revit
-              </p>
-            </div>
 
             <div className="text-center">
               <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">
