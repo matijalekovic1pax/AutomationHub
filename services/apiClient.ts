@@ -27,9 +27,15 @@ const getHeaders = () => {
   return headers;
 };
 
+const addCacheBuster = (url: string) => {
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}_=${Date.now()}`;
+};
+
 export const apiClient = {
   get: async (endpoint: string) => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    const url = addCacheBuster(`${API_URL}${endpoint}`);
+    const res = await fetch(url, {
       method: 'GET',
       headers: getHeaders(),
       cache: 'no-store',
