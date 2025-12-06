@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Box, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -13,6 +13,21 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('rah_saved_creds');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.email) setEmail(parsed.email);
+        if (parsed.password) setPassword(parsed.password);
+        setRememberMe(true);
+      }
+    } catch {
+      // ignore malformed storage
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +35,11 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
     setIsSubmitting(true);
     try {
       await login(email, password);
+      if (rememberMe) {
+        localStorage.setItem('rah_saved_creds', JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem('rah_saved_creds');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -51,6 +71,8 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Work Email</label>
               <input 
                 type="email" 
+                name="email"
+                autoComplete="email"
                 required
                 className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                 placeholder="you@company.com"
@@ -64,6 +86,8 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
                   required
                   className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none pr-10"
                   placeholder="********"
@@ -87,6 +111,16 @@ export const Login: React.FC<Props> = ({ onShowRegistration }) => {
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
             </button>
+
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+              />
+              Remember me on this device
+            </label>
 
             <div className="text-center">
               <div className="text-sm text-slate-600 dark:text-slate-400 mb-2">

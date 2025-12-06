@@ -9,6 +9,7 @@ interface Props {
 export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [companyRole, setCompanyRole] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [companyRole, setCompanyRole] = useState('');
@@ -33,7 +34,11 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
 
     setIsSubmitting(true);
     try {
+<<<<<<< HEAD
       await apiClient.post('/auth/register', { name, email, password, companyRole: companyRole || undefined });
+=======
+      await apiClient.post('/auth/register', { name, email, password, companyRole });
+>>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Registration request failed');
@@ -119,6 +124,18 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
                 type="text"
                 className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                 placeholder="Architect, Engineer, Manager..."
+                value={companyRole}
+                onChange={(e) => setCompanyRole(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Your Role / Title</label>
+              <input 
+                type="text" 
+                required
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                placeholder="e.g. Architect, BIM Manager, Engineer"
                 value={companyRole}
                 onChange={(e) => setCompanyRole(e.target.value)}
               />

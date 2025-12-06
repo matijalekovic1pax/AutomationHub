@@ -39,6 +39,7 @@ export const getAllUsers = async (): Promise<User[]> => {
   return await apiClient.get('/users');
 };
 
+<<<<<<< HEAD
 export const createUser = async (
   name: string,
   email: string,
@@ -47,6 +48,10 @@ export const createUser = async (
   companyRole?: string
 ): Promise<User> => {
   return await apiClient.post('/users', { name, email, password, role, companyRole });
+=======
+export const createUser = async (name: string, email: string, password: string, companyRole: string, role: UserRole): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, companyRole, role });
+>>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
@@ -57,6 +62,10 @@ export const updateUserRole = async (id: string, role: UserRole): Promise<User> 
   return await apiClient.patch(`/users/${id}/role`, { role });
 };
 
+<<<<<<< HEAD
 export const deleteDemoAccounts = async (): Promise<void> => {
+=======
+export const removeDemoAccounts = async (): Promise<void> => {
+>>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
   await apiClient.delete('/users/demo-accounts');
 };

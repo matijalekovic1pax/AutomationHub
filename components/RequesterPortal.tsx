@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, FileText, Loader2, Paperclip, BarChart3, Clock, CheckCircle2, X } from 'lucide-react';
 import { AutomationRequest, Priority, RequestStatus } from '../types';
 import { fileToBase64, createRequest } from '../services/storageService';
@@ -17,6 +17,7 @@ const INITIAL_REQ_STATE = {
   desc: '',
   priority: Priority.MEDIUM,
   project: '',
+  role: '',
   revitVersion: '2024',
   dueDate: '',
   files: [] as File[],
@@ -38,15 +39,21 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
   const awaitingRequests = myRequests.filter(r => r.status !== RequestStatus.COMPLETED);
   const doneRequests = myRequests.filter(r => r.status === RequestStatus.COMPLETED);
 
-  const [newReq, setNewReq] = useState(INITIAL_REQ_STATE);
+  const [newReq, setNewReq] = useState(() => ({ ...INITIAL_REQ_STATE, role: user?.companyRole || '' }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filePreviews, setFilePreviews] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user?.companyRole) {
+      setNewReq(prev => ({ ...prev, role: prev.role || user.companyRole || '' }));
+    }
+  }, [user?.companyRole]);
 
   const previewKey = (file: File) => `${file.name}_${file.lastModified}`;
   const shouldPreview = (file: File) => file.type.startsWith('image/') || file.type === 'application/pdf';
 
   const resetForm = () => {
-    setNewReq(INITIAL_REQ_STATE);
+    setNewReq({ ...INITIAL_REQ_STATE, role: user?.companyRole || '' });
     Object.values(filePreviews).forEach(url => URL.revokeObjectURL(url));
     setFilePreviews({});
   };
@@ -104,6 +111,13 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
     setIsSubmitting(true);
     
     try {
+      const roleValue = (newReq.role || '').trim() || user?.companyRole || '';
+      if (!roleValue) {
+        alert('Please enter your role before submitting.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const nextSubmissionCount = (newReq.submissionCount || 0) + 1;
       const attachments = await Promise.all(newReq.files.map(async (f) => ({
         name: f.name,
@@ -119,6 +133,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
         status: RequestStatus.PENDING,
         requesterName: user?.name || 'Unknown',
         requesterId: user?.id || 'unknown',
+        requesterRole: roleValue,
         projectName: newReq.project,
         revitVersion: newReq.revitVersion,
         dueDate: newReq.dueDate,
@@ -140,7 +155,6 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
       resetForm(); // Reset form data
       setView('DASHBOARD');
       setHasSubmitted(true);
-      setNewReq(INITIAL_REQ_STATE);
     } catch (err) {
       console.error(err);
       alert('Failed to submit request');
@@ -185,6 +199,18 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
                     placeholder="e.g. Skyline Tower"
                     value={newReq.project}
                     onChange={e => setNewReq({...newReq, project: e.target.value})}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Your Role / Discipline</label>
+                    <input
+                    required
+                    type="text"
+                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                    placeholder="e.g. Architect, BIM Manager, Engineer"
+                    value={newReq.role}
+                    onChange={e => setNewReq({...newReq, role: e.target.value})}
                     />
                 </div>
 

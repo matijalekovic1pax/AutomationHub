@@ -18,3 +18,10 @@ View your app in AI Studio: https://ai.studio/apps/drive/14BOB-TJIIaGUsA2SESKrFX
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Preloaded demo accounts
+
+- Demo Developer - email: `demo.dev@automationhub.local`, password: `demo1234`
+- Demo Employee - email: `demo.user@automationhub.local`, password: `demo1234`
+
+Log in with the demo developer to approve real employee registrations. After you create real users and promote at least one to developer, remove the demo accounts from the User Management page (or call `DELETE /users/demo-accounts`) to establish your production hierarchy.

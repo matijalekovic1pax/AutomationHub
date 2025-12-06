@@ -5,6 +5,19 @@ const rawBaseUrl = (import.meta as any).env?.VITE_API_URL as string | undefined;
 export const API_URL = (rawBaseUrl && rawBaseUrl.trim().length > 0 ? rawBaseUrl : DEFAULT_API_URL).replace(/\/$/, "");
 
 const buildError = async (res: Response) => {
+  const isAuthPath = res.url?.includes('/auth/login') || res.url?.includes('/auth/register');
+  const token = sessionStorage.getItem('rah_access_token');
+  const shouldClearSession = (res.status === 401 || res.status === 403) && token && !isAuthPath;
+
+  if (shouldClearSession) {
+    // Clear stale auth and force a clean login to avoid endless 401 loops
+    sessionStorage.removeItem('rah_access_token');
+    sessionStorage.removeItem('rah_current_user_id');
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+    return new Error('Session expired. Please sign in again.');
+  }
   try {
     const data = await res.json();
     const detail = (data as any)?.detail || (data as any)?.message;
@@ -59,6 +72,16 @@ export const apiClient = {
       });
       if (!res.ok) throw await buildError(res);
       return res.json();
+  },
+
+  patch: async (endpoint: string, body: any) => {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw await buildError(res);
+    return res.json();
   },
 
   put: async (endpoint: string, body: any) => {

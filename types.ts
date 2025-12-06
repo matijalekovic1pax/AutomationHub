@@ -16,16 +16,24 @@ export enum Priority {
 
 export const DEVELOPER_ROLE = 'DEVELOPER';
 export const EMPLOYEE_ROLE = 'EMPLOYEE';
+<<<<<<< HEAD
 export type UserRole = typeof DEVELOPER_ROLE | typeof EMPLOYEE_ROLE | string;
+=======
+export type UserRole = string;
+>>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
 
 export interface User {
   id: string | number;
   name: string;
   email: string;
   password?: string; // Added for auth logic
-  role: UserRole;
+  role: UserRole; // System role (DEVELOPER | EMPLOYEE)
+  companyRole?: string; // Job title / discipline
   avatar?: string;
+<<<<<<< HEAD
   companyRole?: string;
+=======
+>>>>>>> 36dcac0a147038d0e62315b0971eabc670d8ab4e
   isDemo?: boolean;
 }
 
@@ -65,6 +73,7 @@ export interface AutomationRequest {
   title: string;
   requesterName: string;
   requesterId: string; // New: Link to user
+  requesterRole: UserRole;
   
   // New Metadata Fields
   projectName: string;
