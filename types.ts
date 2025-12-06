@@ -15,15 +15,18 @@ export enum Priority {
 }
 
 export const DEVELOPER_ROLE = 'DEVELOPER';
-export type UserRole = string;
+export const EMPLOYEE_ROLE = 'EMPLOYEE';
+export type UserRole = typeof DEVELOPER_ROLE | typeof EMPLOYEE_ROLE | string;
 
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   password?: string; // Added for auth logic
   role: UserRole;
   avatar?: string;
+  companyRole?: string;
+  isDemo?: boolean;
 }
 
 export interface Attachment {

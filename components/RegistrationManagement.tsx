@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Clock, CheckCircle, XCircle, Loader2, UserPlus } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
+import { EMPLOYEE_ROLE, DEVELOPER_ROLE, UserRole } from '../types';
 
 interface RegistrationRequest {
   id: number;
@@ -10,13 +11,15 @@ interface RegistrationRequest {
   createdAt: number;
   reviewedBy?: number;
   reviewedAt?: number;
+  companyRole?: string;
 }
 
 export const RegistrationManagement: React.FC = () => {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<number | null>(null);
-  const [roleInputs, setRoleInputs] = useState<Record<number, string>>({});
+  const [roleInputs, setRoleInputs] = useState<Record<number, UserRole>>({});
+  const [companyRoleInputs, setCompanyRoleInputs] = useState<Record<number, string>>({});
 
   useEffect(() => {
     loadRequests();
@@ -26,6 +29,14 @@ export const RegistrationManagement: React.FC = () => {
     try {
       const data = await apiClient.get('/registration-requests');
       setRequests(data);
+      const nextRoles: Record<number, UserRole> = {};
+      const nextCompanyRoles: Record<number, string> = {};
+      (data || []).forEach((req: RegistrationRequest) => {
+        nextRoles[req.id] = roleInputs[req.id] || EMPLOYEE_ROLE;
+        if (req.companyRole) nextCompanyRoles[req.id] = req.companyRole;
+      });
+      setRoleInputs(nextRoles);
+      setCompanyRoleInputs(prev => ({ ...nextCompanyRoles, ...prev }));
     } catch (err) {
       console.error('Failed to load registration requests:', err);
     } finally {
@@ -34,14 +45,11 @@ export const RegistrationManagement: React.FC = () => {
   };
 
   const handleApprove = async (id: number) => {
-    const role = (roleInputs[id] || '').trim();
-    if (!role) {
-      alert('Please enter a role for the user before approving.');
-      return;
-    }
+    const role = roleInputs[id] || EMPLOYEE_ROLE;
+    const companyRole = (companyRoleInputs[id] || '').trim();
     setProcessing(id);
     try {
-      await apiClient.post(`/registration-requests/${id}/approve`, { role });
+      await apiClient.post(`/registration-requests/${id}/approve`, { role, companyRole: companyRole || undefined });
       await loadRequests();
       alert('Registration approved successfully!');
     } catch (err: any) {
@@ -128,16 +136,26 @@ export const RegistrationManagement: React.FC = () => {
                       <Clock className="w-3.5 h-3.5" />
                       Requested {new Date(req.createdAt).toLocaleString()}
                     </div>
-                  </div>
-                  
+                    </div>
+                    
                   <div className="flex gap-3 items-center">
-                    <input
-                      type="text"
-                      className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
-                      placeholder="Role (e.g. Engineer)"
-                      value={roleInputs[req.id] || ''}
-                      onChange={(e) => setRoleInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <select
+                        className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                        value={roleInputs[req.id] || EMPLOYEE_ROLE}
+                        onChange={(e) => setRoleInputs(prev => ({ ...prev, [req.id]: e.target.value as UserRole }))}
+                      >
+                        <option value={EMPLOYEE_ROLE}>Employee</option>
+                        <option value={DEVELOPER_ROLE}>Developer</option>
+                      </select>
+                      <input
+                        type="text"
+                        className="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                        placeholder="Company role (e.g. Architect)"
+                        value={companyRoleInputs[req.id] || ''}
+                        onChange={(e) => setCompanyRoleInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
+                      />
+                    </div>
                     <button
                       onClick={() => handleReject(req.id)}
                       disabled={processing === req.id}

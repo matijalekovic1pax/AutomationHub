@@ -1,5 +1,5 @@
 
-import { User, UserRole } from '../types';
+import { User, UserRole, EMPLOYEE_ROLE } from '../types';
 import { apiClient } from './apiClient';
 
 export const login = async (email: string, password?: string): Promise<User> => {
@@ -39,10 +39,24 @@ export const getAllUsers = async (): Promise<User[]> => {
   return await apiClient.get('/users');
 };
 
-export const createUser = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
-  return await apiClient.post('/users', { name, email, password, role });
+export const createUser = async (
+  name: string,
+  email: string,
+  password: string,
+  role: UserRole = EMPLOYEE_ROLE,
+  companyRole?: string
+): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, role, companyRole });
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
   await apiClient.delete(`/users/${id}`);
+};
+
+export const updateUserRole = async (id: string, role: UserRole): Promise<User> => {
+  return await apiClient.patch(`/users/${id}/role`, { role });
+};
+
+export const deleteDemoAccounts = async (): Promise<void> => {
+  await apiClient.delete('/users/demo-accounts');
 };
