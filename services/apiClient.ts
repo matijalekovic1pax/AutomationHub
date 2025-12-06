@@ -1,6 +1,7 @@
 
-// API base: prefer Vite env var, fallback to local backend for dev
-const API_URL = (import.meta as any).env?.VITE_API_URL ?? "https://automation-hub-backend.vercel.app";
+// API base: prefer Vite env var, fallback to deployed backend; strip trailing slashes to avoid double-slash redirects
+const RAW_API_URL = (import.meta as any).env?.VITE_API_URL ?? "https://automation-hub-backend.vercel.app";
+const API_URL = RAW_API_URL.replace(/\/+$/, "");
 
 const buildError = async (res: Response) => {
   try {

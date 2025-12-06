@@ -269,7 +269,9 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
     setFeedback(null);
     try {
       const token = sessionStorage.getItem('rah_access_token');
-      const res = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'https://automation-hub-backend.vercel.app'}/script-tree/export`, {
+      const rawBase = (import.meta as any).env?.VITE_API_URL || 'https://automation-hub-backend.vercel.app';
+      const base = rawBase.replace(/\/+$/, '');
+      const res = await fetch(`${base}/script-tree/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) {
