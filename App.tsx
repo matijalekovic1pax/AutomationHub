@@ -256,8 +256,16 @@ const AppContent: React.FC = () => {
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
               <p className="text-xs text-slate-500 truncate">
-                {user.role === DEVELOPER_ROLE ? 'Lead Automation Eng.' : (user.companyRole || user.role || 'Employee')}
+                {user.role === DEVELOPER_ROLE ? 'Lead Automation Eng.' : (user.role || 'Employee')}
               </p>
+              <p className="text-[11px] text-slate-400 truncate">
+                Company Role: {user.companyRole || 'Not set'}
+              </p>
+            </div>
+          </div>
+          <div className="w-full mb-3 px-2">
+            <div className="w-full rounded-lg border border-slate-800 bg-slate-900/40 text-xs text-slate-300 px-3 py-2">
+              Company Role: {user.companyRole || 'Not provided'}
             </div>
           </div>
           <button 
