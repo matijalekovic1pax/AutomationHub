@@ -5,7 +5,11 @@ const rawBaseUrl = (import.meta as any).env?.VITE_API_URL as string | undefined;
 export const API_URL = (rawBaseUrl && rawBaseUrl.trim().length > 0 ? rawBaseUrl : DEFAULT_API_URL).replace(/\/$/, "");
 
 const buildError = async (res: Response) => {
-  if (res.status === 401 || res.status === 403) {
+  const isAuthPath = res.url?.includes('/auth/login') || res.url?.includes('/auth/register');
+  const token = sessionStorage.getItem('rah_access_token');
+  const shouldClearSession = (res.status === 401 || res.status === 403) && token && !isAuthPath;
+
+  if (shouldClearSession) {
     // Clear stale auth and force a clean login to avoid endless 401 loops
     sessionStorage.removeItem('rah_access_token');
     sessionStorage.removeItem('rah_current_user_id');
