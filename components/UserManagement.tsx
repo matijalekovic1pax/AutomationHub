@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Shield, Trash2, UserPlus, Eye, EyeOff } from 'lucide-react';
-import { User, UserRole, DEVELOPER_ROLE } from '../types';
+import { User, UserRole, DEVELOPER_ROLE, EMPLOYEE_ROLE } from '../types';
 import { getAllUsers, createUser, deleteUser, updateUserRole } from '../services/authService';
 
 export const UserManagement: React.FC = () => {
@@ -14,7 +14,8 @@ export const UserManagement: React.FC = () => {
     name: '', 
     email: '', 
     password: '', 
-    role: 'Employee' as UserRole
+    companyRole: '',
+    systemRole: EMPLOYEE_ROLE as UserRole
   });
 
   useEffect(() => {
@@ -33,8 +34,8 @@ export const UserManagement: React.FC = () => {
           alert("Password must be at least 4 characters.");
           return;
       }
-      await createUser(newUser.name, newUser.email, newUser.password, newUser.role);
-      setNewUser({ name: '', email: '', password: '', role: 'Employee' });
+      await createUser(newUser.name, newUser.email, newUser.password, newUser.companyRole, newUser.systemRole);
+      setNewUser({ name: '', email: '', password: '', companyRole: '', systemRole: EMPLOYEE_ROLE });
       setIsAddingUser(false);
       await loadUsers();
       setBanner('User added successfully');
@@ -114,15 +115,27 @@ export const UserManagement: React.FC = () => {
                         {showPassword ? <EyeOff className="w-3 h-3"/> : <Eye className="w-3 h-3"/>}
                     </button>
                   </div>
-                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Role</label>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Company Role / Title</label>
                     <input
                       type="text"
+                      required
                       className="w-full px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-md text-sm"
-                      value={newUser.role}
-                      onChange={e => setNewUser({...newUser, role: e.target.value})}
-                      placeholder="e.g. Engineer, Architect, Manager"
+                      value={newUser.companyRole}
+                      onChange={e => setNewUser({...newUser, companyRole: e.target.value})}
+                      placeholder="e.g. Architect, BIM Manager, Engineer"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">System Role</label>
+                    <select
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-md text-sm"
+                      value={newUser.systemRole}
+                      onChange={e => setNewUser({...newUser, systemRole: e.target.value as UserRole})}
+                    >
+                      <option value={EMPLOYEE_ROLE}>Employee</option>
+                      <option value={DEVELOPER_ROLE}>Developer</option>
+                    </select>
                   </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setIsAddingUser(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md">Cancel</button>
@@ -138,7 +151,8 @@ export const UserManagement: React.FC = () => {
               <tr>
                 <th className="px-6 py-4">Employee</th>
                 <th className="px-6 py-4">Email</th>
-                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4">Company Role</th>
+                <th className="px-6 py-4">System Role</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -152,16 +166,17 @@ export const UserManagement: React.FC = () => {
                   <td className="px-6 py-4 flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" /> {u.email}
                   </td>
+                  <td className="px-6 py-4 text-slate-900 dark:text-slate-100">{u.companyRole || '—'}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${u.role === DEVELOPER_ROLE ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-200' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200'}`}>
-                       <Shield className="w-3 h-3" /> {u.role}
+                       <Shield className="w-3 h-3" /> {u.role === DEVELOPER_ROLE ? 'Developer' : 'Employee'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                      <div className="flex items-center justify-end gap-2">
                         <button 
                           disabled={loadingUserId === u.id.toString()}
-                          onClick={() => handleChangeRole(u, u.role === DEVELOPER_ROLE ? 'ARCHITECT' : DEVELOPER_ROLE)}
+                          onClick={() => handleChangeRole(u, u.role === DEVELOPER_ROLE ? EMPLOYEE_ROLE : DEVELOPER_ROLE)}
                           className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition ${u.role === DEVELOPER_ROLE ? 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:bg-amber-900/20 dark:hover:bg-amber-900/40' : 'border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100 dark:border-purple-800 dark:text-purple-200 dark:bg-purple-900/20 dark:hover:bg-purple-900/40'} ${loadingUserId === u.id.toString() ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                           {loadingUserId === u.id.toString() ? 'Updating...' : (u.role === DEVELOPER_ROLE ? 'Demote' : 'Promote to Dev')}

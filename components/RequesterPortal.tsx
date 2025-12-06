@@ -39,21 +39,21 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
   const awaitingRequests = myRequests.filter(r => r.status !== RequestStatus.COMPLETED);
   const doneRequests = myRequests.filter(r => r.status === RequestStatus.COMPLETED);
 
-  const [newReq, setNewReq] = useState(() => ({ ...INITIAL_REQ_STATE, role: user?.role || '' }));
+  const [newReq, setNewReq] = useState(() => ({ ...INITIAL_REQ_STATE, role: user?.companyRole || '' }));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filePreviews, setFilePreviews] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (user?.role) {
-      setNewReq(prev => ({ ...prev, role: prev.role || user.role }));
+    if (user?.companyRole) {
+      setNewReq(prev => ({ ...prev, role: prev.role || user.companyRole || '' }));
     }
-  }, [user?.role]);
+  }, [user?.companyRole]);
 
   const previewKey = (file: File) => `${file.name}_${file.lastModified}`;
   const shouldPreview = (file: File) => file.type.startsWith('image/') || file.type === 'application/pdf';
 
   const resetForm = () => {
-    setNewReq({ ...INITIAL_REQ_STATE, role: user?.role || '' });
+    setNewReq({ ...INITIAL_REQ_STATE, role: user?.companyRole || '' });
     Object.values(filePreviews).forEach(url => URL.revokeObjectURL(url));
     setFilePreviews({});
   };
@@ -111,7 +111,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
     setIsSubmitting(true);
     
     try {
-      const roleValue = (newReq.role || '').trim() || user?.role || '';
+      const roleValue = (newReq.role || '').trim() || user?.companyRole || '';
       if (!roleValue) {
         alert('Please enter your role before submitting.');
         setIsSubmitting(false);

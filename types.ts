@@ -15,6 +15,7 @@ export enum Priority {
 }
 
 export const DEVELOPER_ROLE = 'DEVELOPER';
+export const EMPLOYEE_ROLE = 'EMPLOYEE';
 export type UserRole = string;
 
 export interface User {
@@ -22,7 +23,8 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Added for auth logic
-  role: UserRole;
+  role: UserRole; // System role (DEVELOPER | EMPLOYEE)
+  companyRole?: string; // Job title / discipline
   avatar?: string;
 }
 

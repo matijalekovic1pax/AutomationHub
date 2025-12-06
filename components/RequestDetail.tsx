@@ -392,7 +392,7 @@ export const RequestDetail: React.FC<Props> = ({ request, isDeveloper, onBack, o
                 </div>
                 <div>
                     <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Requester Role</span>
-                    <div className="flex items-center font-medium text-slate-900 dark:text-slate-100"><UserCheck className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {localReq.requesterRole || (localReq as any).requester?.role || 'Not specified'}</div>
+                    <div className="flex items-center font-medium text-slate-900 dark:text-slate-100"><UserCheck className="w-3.5 h-3.5 mr-1.5 text-slate-400"/> {localReq.requesterRole || (localReq as any).requester?.companyRole || (localReq as any).requester?.role || 'Not specified'}</div>
                 </div>
                  <div>
                     <span className="block text-xs text-slate-500 dark:text-slate-300 uppercase font-semibold mb-1">Due Date</span>
