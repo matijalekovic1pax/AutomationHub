@@ -255,11 +255,8 @@ const AppContent: React.FC = () => {
             <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full border border-slate-600" />
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
-              <p className="text-xs text-slate-500 truncate">
-                {user.role === DEVELOPER_ROLE ? 'Lead Automation Eng.' : (user.role || 'Employee')}
-              </p>
-              <p className="text-[11px] text-slate-400 truncate">
-                Company Role: {user.companyRole || 'Not set'}
+              <p className="text-xs text-slate-400 truncate">
+                {user.companyRole || user.role || 'Employee'}
               </p>
             </div>
           </div>
