@@ -25,7 +25,6 @@ const AppContent: React.FC = () => {
   const [requests, setRequests] = useState<AutomationRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [pollTick, setPollTick] = useState(0);
   const [currentView, setCurrentView] = useState<PageView>('DASHBOARD');
   const [showRegistration, setShowRegistration] = useState(false);
   const [pendingRegCount, setPendingRegCount] = useState(0);
@@ -47,14 +46,7 @@ const AppContent: React.FC = () => {
       }
     };
     fetchData();
-  }, [user, refreshTrigger, pollTick]);
-
-  // Poll for new requests periodically to refresh developer view
-  useEffect(() => {
-    if (!user || user.role !== DEVELOPER_ROLE) return;
-    const id = setInterval(() => setPollTick((t) => t + 1), 10000);
-    return () => clearInterval(id);
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   const pendingRequestCount = requests.filter(r => r.status === 'PENDING').length;
   const newRequestsSinceSeen = Math.max(0, requests.length - lastSeenTotalRequests);
