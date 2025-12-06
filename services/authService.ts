@@ -50,3 +50,7 @@ export const deleteUser = async (id: string): Promise<void> => {
 export const updateUserRole = async (id: string, role: UserRole): Promise<User> => {
   return await apiClient.patch(`/users/${id}/role`, { role });
 };
+
+export const removeDemoAccounts = async (): Promise<void> => {
+  await apiClient.delete('/users/demo-accounts');
+};

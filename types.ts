@@ -26,6 +26,7 @@ export interface User {
   role: UserRole; // System role (DEVELOPER | EMPLOYEE)
   companyRole?: string; // Job title / discipline
   avatar?: string;
+  isDemo?: boolean;
 }
 
 export interface Attachment {
