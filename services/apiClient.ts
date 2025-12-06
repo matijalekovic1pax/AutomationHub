@@ -7,9 +7,17 @@ const buildError = async (res: Response) => {
   try {
     const data = await res.json();
     const detail = (data as any)?.detail || (data as any)?.message;
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+    }
     if (detail) return new Error(detail);
     return new Error(JSON.stringify(data));
   } catch {
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+    }
     const text = await res.text();
     return new Error(text || res.statusText);
   }
