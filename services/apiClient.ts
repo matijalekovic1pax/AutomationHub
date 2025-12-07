@@ -32,6 +32,11 @@ export const apiClient = {
       method: 'GET',
       headers: getHeaders(),
     });
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw await buildError(res);
     return res.json();
   },
@@ -42,6 +47,11 @@ export const apiClient = {
       headers: getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
     });
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw await buildError(res);
     return res.json();
   },
@@ -56,6 +66,11 @@ export const apiClient = {
           headers,
           body: formData
       });
+      if (res.status === 401) {
+        sessionStorage.removeItem('rah_access_token');
+        sessionStorage.removeItem('rah_current_user_id');
+        throw new Error('Unauthorized');
+      }
       if (!res.ok) throw await buildError(res);
       return res.json();
   },
@@ -66,6 +81,11 @@ export const apiClient = {
       headers: getHeaders(),
       body: JSON.stringify(body),
     });
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw await buildError(res);
     return res.json();
   },
@@ -75,6 +95,11 @@ export const apiClient = {
       method: 'DELETE',
       headers: getHeaders(),
     });
+    if (res.status === 401) {
+      sessionStorage.removeItem('rah_access_token');
+      sessionStorage.removeItem('rah_current_user_id');
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) throw await buildError(res);
     if (res.status === 204) return null;
     const text = await res.text();
