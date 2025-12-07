@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "postinstall": "node -e \"try{require('fs').chmodSync('node_modules/.bin/tsc',0o755)}catch(e){process.exit(0)}\"",
     "preview": "vite preview"
   },
   "dependencies": {

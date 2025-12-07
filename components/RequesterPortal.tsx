@@ -28,8 +28,9 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
   const [view, setView] = useState<'DASHBOARD' | 'NEW'>('DASHBOARD');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   
+  const currentUserId = user?.id !== undefined && user?.id !== null ? String(user.id) : null;
   // Filter requests for this user
-  const myRequests = requests.filter(r => r.requesterId === user?.id);
+  const myRequests = currentUserId ? requests.filter(r => r.requesterId === currentUserId) : [];
 
   // Stats
   const pendingCount = myRequests.filter(r => r.status === RequestStatus.PENDING).length;
@@ -118,7 +119,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
         priority: newReq.priority,
         status: RequestStatus.PENDING,
         requesterName: user?.name || 'Unknown',
-        requesterId: user?.id || 'unknown',
+        requesterId: currentUserId || 'unknown',
         projectName: newReq.project,
         revitVersion: newReq.revitVersion,
         dueDate: newReq.dueDate,
