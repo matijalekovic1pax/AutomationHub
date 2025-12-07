@@ -60,7 +60,7 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
           
           <div className="p-8 text-center">
             <p className="text-slate-600 dark:text-slate-300 mb-6">
-              Your registration request has been submitted successfully. A developer will review your request and approve your account soon.
+              Your registration request has been submitted successfully. All new accounts start as Employees; a Developer will review and approve your access, and can promote you later if needed.
             </p>
             <button
               onClick={onBackToLogin}
@@ -128,6 +128,7 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
                 value={companyTitle}
                 onChange={(e) => setCompanyTitle(e.target.value)}
               />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Your company title is for context only. System roles start as Employee and are managed by developers.</p>
             </div>
             
             <div>

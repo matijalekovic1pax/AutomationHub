@@ -1,5 +1,5 @@
 
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { apiClient } from './apiClient';
 
 export const login = async (email: string, password?: string): Promise<User> => {
@@ -40,8 +40,8 @@ export const getAllUsers = async (): Promise<User[]> => {
   return await apiClient.get('/users');
 };
 
-export const createUser = async (name: string, email: string, password: string, role: UserRole, companyTitle?: string): Promise<User> => {
-  return await apiClient.post('/users', { name, email, password, role, companyTitle });
+export const createUser = async (name: string, email: string, password: string, companyTitle: string): Promise<User> => {
+  return await apiClient.post('/users', { name, email, password, companyTitle });
 };
 
 export const deleteUser = async (id: string): Promise<void> => {

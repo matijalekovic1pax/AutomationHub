@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Clock, CheckCircle, XCircle, Loader2, UserPlus } from 'lucide-react';
+import { Mail, Clock, CheckCircle, XCircle, Loader2, UserPlus, Shield } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 
 interface RegistrationRequest {
@@ -119,15 +119,19 @@ export const RegistrationManagement: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 mt-2">
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
-                        <UserPlus className="w-3 h-3 text-indigo-500" /> {req.companyTitle || 'Company title not provided'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500 mt-2">
-                      <Clock className="w-3.5 h-3.5" />
-                      Requested {new Date(req.createdAt).toLocaleString()}
-                    </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 mt-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                      <UserPlus className="w-3 h-3 text-indigo-500" /> {req.companyTitle || 'Company title not provided'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 mt-1.5">
+                    <Shield className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+                    <span>System role after approval: Employee</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500 mt-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    Requested {new Date(req.createdAt).toLocaleString()}
+                  </div>
                   </div>
                   
                   <div className="flex gap-3 items-center">
@@ -167,6 +171,7 @@ export const RegistrationManagement: React.FC = () => {
                   <th className="px-6 py-4">User</th>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Company Title</th>
+                  <th className="px-6 py-4">System Role</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Processed</th>
                 </tr>
@@ -177,6 +182,11 @@ export const RegistrationManagement: React.FC = () => {
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{req.name}</td>
                     <td className="px-6 py-4">{req.email}</td>
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-200">{req.companyTitle || '-'}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">
+                        <Shield className="w-3 h-3" /> Employee
+                      </span>
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         req.status === 'APPROVED' 
