@@ -1,7 +1,7 @@
 
 // API base: prefer Vite env var, fallback to local backend for dev
-const rawBase = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:8000";
-export const API_BASE_URL = rawBase.replace(/\/+$/, "");
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 const buildError = async (res: Response) => {
   try {
