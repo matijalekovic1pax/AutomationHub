@@ -79,7 +79,7 @@ failed_login_attempts: Dict[str, List[int]] = defaultdict(list)
 ALLOWED_ORIGINS = [
     origin.strip() for origin in os.getenv(
         "ALLOWED_ORIGINS",
-        "https://revitautomationhub.onrender.com,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"
+        "https://automation-hub-1pax.vercel.app,https://revitautomationhub.onrender.com,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"
     ).split(",") if origin.strip()
 ]
 if not ALLOWED_ORIGINS:
