@@ -61,7 +61,7 @@ export const apiClient = {
   },
 
   put: async (endpoint: string, body: any) => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(body),
@@ -71,7 +71,7 @@ export const apiClient = {
   },
 
   delete: async (endpoint: string) => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
