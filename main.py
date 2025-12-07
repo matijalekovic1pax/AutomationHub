@@ -65,7 +65,7 @@ DEFAULT_ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@revithub.com")
 DEVELOPER_ROLE = "DEVELOPER"
 EMPLOYEE_ROLE = "EMPLOYEE"
 
-DEMO_DEVELOPER_EMAIL = os.getenv("DEMO_DEVELOPER_EMAIL", "demo@automationhub.local")
+DEMO_DEVELOPER_EMAIL = os.getenv("DEMO_DEVELOPER_EMAIL", "demo@automation-hub-backend.vercel.app")
 DEMO_DEVELOPER_PASSWORD = os.getenv("DEMO_DEVELOPER_PASSWORD", "demo1234")
 DEMO_DEVELOPER_NAME = os.getenv("DEMO_DEVELOPER_NAME", "Demo Developer")
 DEMO_DEVELOPER_COMPANY_TITLE = os.getenv("DEMO_DEVELOPER_COMPANY_TITLE", "Demo Developer")

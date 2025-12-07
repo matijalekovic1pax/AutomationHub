@@ -30,7 +30,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
 export const logout = () => {
   sessionStorage.removeItem('rah_access_token');
-  window.location.reload();
+  sessionStorage.removeItem('rah_current_user_id');
 };
 
 // --- User Management for Developers ---
