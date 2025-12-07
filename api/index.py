@@ -1,9 +1,14 @@
+import os
 import sys
-from pathlib import Path
 
-# Make the repository root importable so we can reuse the FastAPI app defined in main.py
-ROOT_DIR = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
+# Ensure the root path is available for imports when deployed as a Vercel function
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
-from main import app  # noqa: E402  FastAPI instance reused by Vercel
+from mangum import Mangum  # type: ignore
+from main import app
+
+# Expose the FastAPI app to Vercel's serverless runtime
+handler = Mangum(app)

@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderPlus, Folder as FolderIcon, FolderOpen, FileCode, Search, ChevronRight, ChevronDown, Loader2, Trash2, MoveRight, Shield, ArrowUp, Edit2 } from 'lucide-react';
 import { AutomationRequest, DEVELOPER_ROLE } from '../types';
-import { apiClient } from '../services/apiClient';
+import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 interface ScriptTreeNode {
@@ -269,9 +269,7 @@ export const ScriptLibraryWithFolders: React.FC<Props> = ({ requests, onViewRequ
     setFeedback(null);
     try {
       const token = sessionStorage.getItem('rah_access_token');
-      const rawBase = (import.meta as any).env?.VITE_API_URL || 'https://automation-hub-backend.vercel.app';
-      const base = rawBase.replace(/\/+$/, '');
-      const res = await fetch(`${base}/script-tree/export`, {
+      const res = await fetch(`${API_BASE_URL}/script-tree/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) {

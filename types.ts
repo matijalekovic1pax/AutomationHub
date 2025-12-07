@@ -19,7 +19,7 @@ export const EMPLOYEE_ROLE = 'EMPLOYEE';
 export type UserRole = typeof DEVELOPER_ROLE | typeof EMPLOYEE_ROLE;
 
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   password?: string; // Added for auth logic

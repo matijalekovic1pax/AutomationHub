@@ -1,34 +1,24 @@
 
-// API base: prefer Vite env var, fallback to deployed backend; strip trailing slashes to avoid double-slash redirects
-const RAW_API_URL = (import.meta as any).env?.VITE_API_URL ?? "https://automation-hub-backend.vercel.app";
-const API_URL = RAW_API_URL.replace(/\/+$/, "");
+// API base: prefer Vite env var, fallback to local backend for dev
+const rawBase = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:8000";
+export const API_BASE_URL = rawBase.replace(/\/+$/, "");
 
-type ApiError = Error & { status?: number };
-
-const buildError = async (res: Response): Promise<ApiError> => {
+const buildError = async (res: Response) => {
   try {
     const data = await res.json();
     const detail = (data as any)?.detail || (data as any)?.message;
-    const err: ApiError = detail ? new Error(detail) : new Error(JSON.stringify(data));
-    err.status = res.status;
-    return err;
+    if (detail) return new Error(detail);
+    return new Error(JSON.stringify(data));
   } catch {
     const text = await res.text();
-    const err: ApiError = new Error(text || res.statusText);
-    err.status = res.status;
-    return err;
+    return new Error(text || res.statusText);
   }
 };
 
-const getToken = () => {
-  return localStorage.getItem('rah_access_token') || sessionStorage.getItem('rah_access_token');
-};
-
 const getHeaders = () => {
-  const token = getToken();
+  const token = sessionStorage.getItem('rah_access_token');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache',
   };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -36,25 +26,18 @@ const getHeaders = () => {
   return headers;
 };
 
-const addCacheBuster = (url: string) => {
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}_=${Date.now()}`;
-};
-
 export const apiClient = {
   get: async (endpoint: string) => {
-    const url = addCacheBuster(`${API_URL}${endpoint}`);
-    const res = await fetch(url, {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
       headers: getHeaders(),
-      cache: 'no-store',
     });
     if (!res.ok) throw await buildError(res);
     return res.json();
   },
 
   post: async (endpoint: string, body?: any) => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -68,7 +51,7 @@ export const apiClient = {
       const headers: any = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
       
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'POST',
           headers,
           body: formData

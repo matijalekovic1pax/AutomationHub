@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Bell, Shield, Moon, Save, Loader2 } from 'lucide-react';
-import { DEVELOPER_ROLE } from '../types';
 import { useTheme } from '../context/ThemeContext';
 
 export const SettingsPage: React.FC = () => {
@@ -58,22 +57,22 @@ export const SettingsPage: React.FC = () => {
                 readOnly
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Role</label>
+             <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Company Title</label>
               <input 
                 type="text" 
-                defaultValue={user ? (user.role === DEVELOPER_ROLE ? 'Developer' : 'Employee') : ''}
+                defaultValue={user?.companyTitle || '—'}
                 className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg outline-none text-slate-500 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/70"
                 disabled
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Company Title</label>
+             <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Role</label>
               <input 
                 type="text" 
-                defaultValue={user?.companyTitle || 'Employee'}
+                defaultValue={user?.role}
                 className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg outline-none text-slate-500 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/70"
-                readOnly
+                disabled
               />
             </div>
           </div>

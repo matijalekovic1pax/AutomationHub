@@ -26,13 +26,13 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
       return;
     }
 
-    if (password.length < 4) {
-      setError('Password must be at least 4 characters');
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      setError('Password must be at least 8 characters and include upper, lower, and a number.');
       return;
     }
 
     if (!companyTitle.trim()) {
-      setError('Please enter your company title');
+      setError('Company title is required');
       return;
     }
 
@@ -60,7 +60,7 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
           
           <div className="p-8 text-center">
             <p className="text-slate-600 dark:text-slate-300 mb-6">
-              Your registration request has been submitted successfully. All new accounts start as Employees; a Developer will review and approve your access, and can promote you later if needed.
+              Your registration request has been submitted successfully. A developer will review your request and approve your account soon.
             </p>
             <button
               onClick={onBackToLogin}
@@ -107,6 +107,18 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Company Title</label>
+              <input 
+                type="text" 
+                required
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                placeholder="e.g. BIM Manager, Head of Design"
+                value={companyTitle}
+                onChange={(e) => setCompanyTitle(e.target.value)}
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Work Email</label>
               <input 
                 type="email" 
@@ -116,19 +128,6 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Company Title</label>
-              <input 
-                type="text" 
-                required
-                className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                placeholder="e.g. Design Technologist, BIM Manager"
-                value={companyTitle}
-                onChange={(e) => setCompanyTitle(e.target.value)}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Your company title is for context only. System roles start as Employee and are managed by developers.</p>
             </div>
             
             <div>
@@ -150,6 +149,7 @@ export const Registration: React.FC<Props> = ({ onBackToLogin }) => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Use 8+ characters with uppercase, lowercase, and a number.</p>
             </div>
 
             <div>

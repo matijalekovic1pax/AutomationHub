@@ -25,6 +25,7 @@ const AppContent: React.FC = () => {
   const [requests, setRequests] = useState<AutomationRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [pollTick, setPollTick] = useState(0);
   const [currentView, setCurrentView] = useState<PageView>('DASHBOARD');
   const [showRegistration, setShowRegistration] = useState(false);
   const [pendingRegCount, setPendingRegCount] = useState(0);
@@ -46,7 +47,14 @@ const AppContent: React.FC = () => {
       }
     };
     fetchData();
-  }, [user, refreshTrigger]);
+  }, [user, refreshTrigger, pollTick]);
+
+  // Poll for new requests periodically to refresh developer view
+  useEffect(() => {
+    if (!user || user.role !== DEVELOPER_ROLE) return;
+    const id = setInterval(() => setPollTick((t) => t + 1), 10000);
+    return () => clearInterval(id);
+  }, [user]);
 
   const pendingRequestCount = requests.filter(r => r.status === 'PENDING').length;
   const newRequestsSinceSeen = Math.max(0, requests.length - lastSeenTotalRequests);
@@ -247,14 +255,9 @@ const AppContent: React.FC = () => {
             <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full border border-slate-600" />
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user.name}</p>
-              <p className="text-xs text-slate-400 truncate">
-                {user.companyTitle || 'Company title not set'}
+              <p className="text-xs text-slate-500 truncate">
+                {user.role === DEVELOPER_ROLE ? 'Developer' : (user.companyTitle || 'Employee')}
               </p>
-              <div className="mt-1 flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${user.role === DEVELOPER_ROLE ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40' : 'bg-blue-500/20 text-blue-200 border border-blue-500/40'}`}>
-                  {user.role === DEVELOPER_ROLE ? 'Developer' : 'Employee'}
-                </span>
-              </div>
             </div>
           </div>
           <button 
