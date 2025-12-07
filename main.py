@@ -35,13 +35,20 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 import google.generativeai as genai
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s"
+)
+logger = logging.getLogger("automationhub")
+
 # Configuration
 APP_ENV = os.getenv("APP_ENV", "development").lower()
 DEBUG_MODE = APP_ENV != "production"
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY environment variable is required for token signing.")
+DEFAULT_SECRET_KEY = "change-me-please"
+SECRET_KEY = os.getenv("SECRET_KEY") or DEFAULT_SECRET_KEY
+if SECRET_KEY == DEFAULT_SECRET_KEY:
+    logger.warning("SECRET_KEY not set; using insecure default. Set SECRET_KEY env var in production.")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
@@ -83,17 +90,15 @@ if not ALLOWED_ORIGINS:
         "http://127.0.0.1:4173",
     ]
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s %(message)s"
-)
-logger = logging.getLogger("automationhub")
-
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 # Database Setup
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./automationhub.db")
+default_sqlite = "sqlite:///./automationhub.db"
+if not os.getenv("DATABASE_URL") and os.getenv("VERCEL"):
+    default_sqlite = "sqlite:////tmp/automationhub.db"
+
+DATABASE_URL = os.getenv("DATABASE_URL", default_sqlite)
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
