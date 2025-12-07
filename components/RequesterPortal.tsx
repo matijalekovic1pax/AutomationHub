@@ -118,7 +118,7 @@ export const RequesterPortal: React.FC<Props> = ({ requests, onRequestCreate, on
         priority: newReq.priority,
         status: RequestStatus.PENDING,
         requesterName: user?.name || 'Unknown',
-        requesterId: String(user?.id ?? 'unknown'),
+        requesterId: user?.id || 'unknown',
         projectName: newReq.project,
         revitVersion: newReq.revitVersion,
         dueDate: newReq.dueDate,

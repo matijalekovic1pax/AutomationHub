@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FolderPlus, Folder as FolderIcon, FolderOpen, FileCode, Search, ChevronRight, ChevronDown, Loader2, Trash2, MoveRight, Shield, ArrowUp, Edit2 } from 'lucide-react';
 import { AutomationRequest, DEVELOPER_ROLE } from '../types';
-import { apiClient, API_BASE_URL } from '../services/apiClient';
+import { API_BASE_URL, apiClient } from '../services/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 interface ScriptTreeNode {
